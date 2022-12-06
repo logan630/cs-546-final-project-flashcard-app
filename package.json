@@ -1,0 +1,27 @@
+{
+  "name": "cs-546-final-project",
+  "version": "1.0.0",
+  "description": "Final project for CS 546. Online study tool QuackDown Study. Logan Potts, Daniel Craig, Ryan Savin, Adam El-Sawaf",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logan630/cs-546-final-project-flashcard-app.git"
+  },
+  "author": "Logan Potts, Daniel Craig, Ryan Savin, Adam El-Sawaf",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/logan630/cs-546-final-project-flashcard-app/issues"
+  },
+  "homepage": "https://github.com/logan630/cs-546-final-project-flashcard-app#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.18.2",
+    "express-handlebars": "^6.0.6",
+    "express-session": "^1.17.3",
+    "mongodb": "^4.12.1"
+  }
+}
