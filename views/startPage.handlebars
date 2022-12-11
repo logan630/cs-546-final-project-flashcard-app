@@ -1,0 +1,18 @@
+<header>
+    <h1>Welcome to QuackDown Study</h1>
+</header>
+{{#if loggedIn}}
+    <p>You are logged in (unironically)</p>
+    <article class="login-homepage-buttons">
+        <h4>Your actions:</h4>
+        <a href="/protected">Visit your page</a> <br>
+        <a href="/logout">Logout</a>
+    </article>
+{{else}}
+    <form action="/register" method="GET" class="register-form-homepage">
+        <button>Register</button>
+    </form>
+    <form action="/login" method="GET" class="login-form-homepage">
+        <button>Login</button>
+    </form>
+{{/if}}

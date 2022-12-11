@@ -6,6 +6,15 @@ const path=require('path')
 const users=require('../data/users')
 const saltRounds=11;
 
+router
+  .route('/')
+  .get(async (req, res) => {
+    let isLoggedIn=false
+    if(req.session.user){
+      isLoggedIn=true
+    }
+    res.render(path.resolve('views/startPage.handlebars'),{title:"QuackDown Study",loggedIn:isLoggedIn})
+  })
 
 router
   .route('/register')

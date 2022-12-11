@@ -1,6 +1,27 @@
 /*This file should have CSS rulesets */
+
+/* Global variables for colors */
+:root {
+    --bg-blue: rgb(0,0,50);
+    --text-yellow: rgb(230,230,0);
+}
+.login-homepage-buttons {
+    text-align: center;
+    font-size: 40px;
+}
+.login-homepage-buttons h4 {
+    margin: 0px 60px;
+    color: rgb(100,200,255);
+}
+.login-form-homepage button {
+    font-size: 40px;
+}
+.register-form-homepage button {
+    font-size: 40px;
+}
+
 p {
-	color: rgb(255,70,70);
+	color: var(--text-yellow);
 	font-weight: normal;
     font-size: 28px;
     font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
@@ -11,7 +32,7 @@ header {
     font-size: 40px;
 }
 body {
-    background-color: rgb(0, 0, 0);
+    background-color: var(--bg-blue);
     /*background-image: url('../public/background2.jpg');
     background-size: cover;*/
 }
