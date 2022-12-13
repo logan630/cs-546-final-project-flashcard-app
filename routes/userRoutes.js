@@ -4,6 +4,7 @@ const router=express.Router()
 const bcrypt=require('bcryptjs')
 const path=require('path')
 const users=require('../data/users')
+const validation=require('../validation')
 const saltRounds=11;
 
 router
@@ -30,8 +31,8 @@ router
     //when the user submits data from the registration form 
     let check={};
     try{
-      checkUsername(req.body.usernameInput)
-      checkPassword(req.body.passwordInput)
+      validation.checkUsername(req.body.usernameInput)
+      validation.checkPassword(req.body.passwordInput)
       check=await users.createUser(req.body.usernameInput,req.body.passwordInput)
     }
     catch(e){
@@ -63,8 +64,8 @@ router
   .post(async (req,res) => {
     let check={}
     try {
-      checkUsername(req.body.usernameInput)
-      checkPassword(req.body.passwordInput)
+      validation.checkUsername(req.body.usernameInput)
+      validation.checkPassword(req.body.passwordInput)
       check=await users.checkUser(req.body.usernameInput,req.body.passwordInput) 
     }
     catch(e){
@@ -123,28 +124,4 @@ router
     }
   })
 
-const checkUsername = (username) => {
-    if(!username) throw ("You must supply a username")
-    if(typeof username!=='string') throw "Username must be a string"
-    //username length and spaces
-    if(username.includes(" ")) throw "Username cannot include spaces"
-    if((/[^a-z0-9]/i).test(username)) throw "Username must only consist of alphanumeric characters"
-    username=username.trim().toLowerCase()
-    if(username.length<4) throw "Username must be at least 4 characters long"
-    return username
-}
-  
-const checkPassword = (password) => {
-    if(!password) throw ("You must supply a password")
-    if(typeof password!=='string') throw "Password must be a string"
-    //password length and spaces
-    if(password.includes(" ")) throw "Password cannot include spaces"
-    
-    if(password.length<6) throw "Password must be at least 6 characters long"
-    //password criteria
-    if(password.toLowerCase()===password) throw "Password must include at least one uppercase character"
-    if(!(/[0-9]/).test(password)) throw ("Password must include at least one number")
-    if(!(/[^a-z0-9]/i).test(password)) throw "Password must include at least one special character"
-    return password
-}  
 module.exports=router;
