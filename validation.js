@@ -1,5 +1,7 @@
+const {ObjectId} = require('mongodb')
+
 function checkDeckName(deckName){
-    if(!deckName) throw "Error: Deck name is not defined"
+    if(!deckName) throw new Error("Error: Deck name is not defined")
     if(typeof deckName!=='string') throw "Deck name must be a string"
     if(deckName.trim().length===0) throw "Deck name cannot be empty spaces"
     deckName=deckName.trim()

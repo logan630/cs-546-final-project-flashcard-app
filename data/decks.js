@@ -1,6 +1,7 @@
 const mongoCollections = require('../config/mongoCollections');
 const decks = mongoCollections.decks
 const users = mongoCollections.users
+const userFunctions = require('./users')
 const validation=require('../validation')
 const {ObjectId} = require('mongodb');
 
@@ -14,14 +15,21 @@ const createDeck = async (creator,deckName,subject,isPublic) => {
     if(tempDeck) {
         throw `A deck named ${deckName} already exists`
     }
-    const users=await users();
-    let userName=await users.findOne({username:creator})
+    let user=undefined;
+    try {
+        user = await userFunctions.getUserIdByName(creator)
+    }
+    catch(e) {
+        console.dir(e)
+    }
+    // console.log("creator: "+creator)
+    // console.log(user)
     let d=new Date()
     let newDeck = {
         name:deckName,
-        dateCreated:`${d.getMonth()+1}/${d.getDate()}/${d.getFullYear}`,
+        dateCreated:`${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`,
         subject:subject,
-        creatorId:userName.ObjectId(),
+        creatorId:user._id.toString(),
         public:isPublic,
         cards: []
     }
@@ -65,7 +73,6 @@ const getDeckById = async (deckId) => {
 }
 
 const getAllDecks = async () => {
-    deckId=validation.checkId(deckId)
     const deckCollection=await decks()
     const deckList=await deckCollection.find({}).toArray();
     if(!deckList) throw "Could not get all decks"

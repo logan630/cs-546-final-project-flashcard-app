@@ -1,0 +1,17 @@
+<main>
+    <h1>{{userName}}'s Decks:</h1>
+    <p>{{errorMessage}}</p>
+    <form action="/protected/decks" method="POST" id="create-deck-form" class="create-deck-form">
+        <p>Create a new deck:</p> <br>
+        <label for="decknameInput">Deck name</label>
+        <input id="decknameInput" type="text" name="decknameInput">
+        <button type="submit">Create Deck</button>
+    </form>
+    
+    <ol class="deck-list">
+        {{#each deck}}
+        <script src="public/js/main.js"></script>
+        <li><a href="deckDetails/{{this._id}}">{{this.name}}</a></li>
+        {{/each}}
+    </ol>
+</main>

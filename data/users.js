@@ -43,5 +43,22 @@ const getAllUsers = async () => {
     if(!userList) throw new Error("Could not get all users")
     return userList
 }
+
+const getUserById = async(id) => {
+  id=validation.checkId(id)
+  const userCollection=await users()
+  const userFromId=await userCollection.findOne({_id:ObjectId(id)});
+  if(!userFromId) throw "Error, no user found with that id"
+  userFromId._id=userFromId._id.toString()
+  return userFromId
+}
+
+const getUserIdByName = async (userName) => {
+  userName=validation.checkUsername(userName)
+  const userCollection = await users();
+  const userFromName = await userCollection.findOne({username:userName})
+  if(!userFromName) throw "Error: no user with name" +userName+" found"
+  return userFromName
+}
   
-  module.exports = {createUser,checkUser,getAllUsers};
+module.exports = {createUser,checkUser,getAllUsers,getUserById,getUserIdByName};

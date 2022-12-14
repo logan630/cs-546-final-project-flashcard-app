@@ -1,0 +1,19 @@
+<main>
+    <h1>{{deckName}}</h1>
+    <p>{{errorMessage}}</p>
+    <form action="/protected/deckDetails/{{id}}" method="POST" id="create-card-form" class="create-card-form">
+        <p>Create a new card:</p> <br>
+        <label for="cardFrontInput">Front</label>
+        <input id="cardFrontInput" type="text" name="cardFrontInput">
+        <label for="cardBackInput">Back</label>
+        <input id="cardBackInput" type="text" name="cardBackInput">
+        <button type="submit">Add card</button>
+    </form>
+    
+    <ol class="card-list">
+        {{#each card}}
+            <script src="public/js/main.js"></script>
+            <li>{{this.front}} : {{this.back}}</li>
+        {{/each}}
+    </ol>
+</main>
