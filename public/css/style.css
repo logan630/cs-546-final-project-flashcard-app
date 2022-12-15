@@ -21,14 +21,18 @@
     font-size: 40px;
 }
 
-.deck-list li {
+li {
     font-size: 40px;
     margin: 0px 30px;
+    text-align: center;
 }
 div {
     text-align: center;
     font-size: 50px;
     color:rgb(255,0,0);
+}
+textarea {
+    font-size: 30px;
 }
 p {
 	color: var(--text-yellow);

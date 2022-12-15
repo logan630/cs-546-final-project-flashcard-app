@@ -4,9 +4,13 @@
     let newDeckNameInput=$('#decknameInput')
     let deckList=$('#deck-list')
 
+    let newCardForm=$('#create-card-form')
+    let cardFrontInput=$('#cardFrontInput')
+    let cardBackInput=$('#cardBackInput')
+    let cardList=$('#card-list')
+
     function bindEventsToDeckItem(deckItem) {
         //console.log("bindEventsToDeckItem")
-        //let currentId="hello"
         deckItem.find('.submit-button').on('click',function (event) {
             event.preventDefault();
             console.log("clicked")
@@ -24,12 +28,42 @@
                 deckItem.replaceWith(newElement)
             })
         })
-        //return currentId
     }
     let errorDiv=document.getElementById('error')
     deckList.children().each(function (index, element) {
         bindEventsToDeckItem($(element))
     });
+    //for creating a new card
+    newCardForm.submit(function (event) {
+        event.preventDefault();
+        let newCardFront=cardFrontInput.val();
+        let newCardBack=cardBackInput.val();
+        if(newCardFront) {
+            url=window.location.href.substring(window.location.href.indexOf("/protected"));
+            let requestConfig = {
+                method: "POST",
+                url: url,
+                contentType: "application/json",
+                data: JSON.stringify({front:newCardFront,back:newCardBack})
+            }
+            $.ajax(requestConfig).then(function (responseMessage) {
+                let id=responseMessage.id
+                if(id) {
+                    errorDiv.hidden=true
+                    const listItem = `<li> <a href="decks/${id}">${$('#cardFrontInput').val()} : ${$('#cardBackInput').val()}</a> </li>`
+                    cardList.append(listItem)
+                }
+                else{
+                    errorDiv.hidden=false
+                    errorDiv.innerHTML=responseMessage.error
+                    frmLabel=className='error'
+                    cardFrontInput.focus();
+                }
+                $('#create-card-form').trigger('reset')
+
+            })
+        }
+    })
     //for creating a new deck
     newDeckForm.submit(function (event) {
         event.preventDefault();
@@ -49,12 +83,10 @@
                     deckList.append(listItem)
                 }
                 else{   //for when createDeck fails
-                    //let errorString=str.substring(str.indexOf('class="error" hidden>'))
                     errorDiv.hidden=false
                     errorDiv.innerHTML=responseMessage.error
                     frmLabel=className='error'
                     newDeckNameInput.focus();
-
                 }
                 $('#create-deck-form').trigger('reset')
             })

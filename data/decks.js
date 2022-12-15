@@ -61,7 +61,7 @@ const renameDeck = async (id, newName) => {
 }
 
 const getDeckById = async (deckId) => {
-    deckId=validation.checkId(deckId)
+    deckId=validation.checkId(deckId.toString())
     const deckCollection=await decks();
     const deck=await deckCollection.findOne({_id: ObjectId(deckId)});
     if(!deck) throw `Could not find deck with id of ${deckId}`
@@ -90,14 +90,17 @@ const getUsersDecks = async(userId) => {
 const createCard = async (front,back,deckName) => {
     front=validation.checkCard(front,'front')
     back=validation.checkCard(back,'back')
+    const deckCollection=await decks();
     const deck=await deckCollection.findOne({name:deckName})
-    const deckId=deck.ObjectId()
+    const deckId=deck._id
     if(!deck) throw "Deck not found"
-    for(i in deck.cards){
-        if(i[front].toLowerCase()===front.toLowerCase()){
-            throw `A card named ${front} already exists`
-        }
-    }
+    /*if(deck.cards.length>0)
+        for(i in deck.cards){
+            
+            if(i.front.toLowerCase()===front.toLowerCase()){
+                throw `A card named ${front} already exists`
+            }
+        }*/
     let tempObject=deck
     let newCard={
         front:front,
@@ -105,7 +108,7 @@ const createCard = async (front,back,deckName) => {
     }
     tempObject.cards.push(newCard)
     return deckCollection
-        .updateOne({_id: ObjectId(deck)},{$set:tempObject})
+        .updateOne({_id: ObjectId(deck._id)},{$set:tempObject})
         .then(function() {
             return getDeckById(deckId)
         })

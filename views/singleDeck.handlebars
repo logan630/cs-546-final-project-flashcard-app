@@ -1,19 +1,19 @@
 <main>
     <h1>{{deckName}}</h1>
-    <p>{{errorMessage}}</p>
+    <div id="error" class="error" hidden>{{errorMessage}}</div>
     <link rel="stylesheet" href="/public/css/style.css">
     <form action="/protected/decks" method="POST" id="create-card-form" class="create-card-form">
         <p>Create a new card:</p> <br>
         <label for="cardFrontInput">Front</label>
         <input id="cardFrontInput" type="text" name="cardFrontInput"> <br>
         <label for="cardBackInput">Back</label>
-        <input id="cardBackInput" type="text" name="cardBackInput"> <br>
+        <textarea id="cardBackInput" type="textarea" name="cardBackInput" rows="4" cols="30"></textarea> <br>
         <button type="submit">Add card</button>
     </form>
     
-    <ol class="card-list">
+    <ol id="card-list" class="card-list">
         {{#each card}}
-            <li>{{this.front}} : {{this.back}}</li>
+            <li><a href="decks/{{this._id}}"> {{this.front}} : {{this.back}}</a></li>
         {{/each}}
     </ol>
 </main>

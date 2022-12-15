@@ -6,10 +6,11 @@ const path=require('path')
 const users=require('../data/users')
 const decks=require('../data/decks')
 const validation=require('../validation')
+const constructorMethod = require('.')
 
-router      //all the decks
+router      
     .route('/decks')
-    .get(async (req, res) => {
+    .get(async (req, res) => { // /decks get
         let userInfo=req.body;
         if(!userInfo) throw "Error getting userInfo"
         let u=req.session.user.username
@@ -30,7 +31,7 @@ router      //all the decks
             res.render(path.resolve('views/decks.handlebars'),{title:u,deck:yourDecks,userName:u})
         }
     })
-    .post(async (req,res) => {
+    .post(async (req,res) => {  // /decks post
         let deckInfo=req.body
         if(!deckInfo){
             res.status(500)
@@ -75,7 +76,7 @@ router      //all the decks
 router      //just one deck
     .route('/decks/:id')
     .get(async (req, res) => {
-        //console.log("Get id: "+req.params.id)
+        console.log("Get id: "+req.params.id)
         let userInfo=req.body;
         if(!userInfo) throw "Error getting userInfo"
         const yourDecks=await decks.getAllDecks()
@@ -83,14 +84,17 @@ router      //just one deck
             res.status(500)
             return;
         }
+        const deck=await decks.getDeckById(req.params.id)
+        console.log(deck.cards)
         if(req.session.user){
-            res.render(path.resolve('views/singleDeck.handlebars'),{title:"test"})
+            res.render(path.resolve('views/singleDeck.handlebars'),{title:"deck",card:deck.cards})
         }
     })
     .post(async (req,res) => {
-        console.log("id: "+req.params.id)
         let id=null;
         let deck=null; 
+        let front=null;
+        let back=null;
         try {
             id=validation.checkId(req.params.id)
             deck=await decks.getDeckById(id)
@@ -99,18 +103,45 @@ router      //just one deck
         catch(e){
             console.log(e)
         }
-        
-        const front=validation.checkCard(req.body.cardFrontInput,'front',frontLen)
-        const back=validation.checkCard(req.body.cardBackInput,'back',backLen)
-        u=req.session.user.username
+        const yourDecks=await decks.getAllDecks()
+
         try{
-            await decks.createCard(front,back,deckTitle.name)
+            front=validation.checkCard(req.body.front,'front')
+            back=validation.checkCard(req.body.back,'back')
+            await decks.createCard(front,back,deck.name)
         }
         catch(e){
             console.log(e)
+            res.json({
+                handlebars:path.resolve('views/singleDeck.handlebars'),
+                title:deck.name,
+                id:id,
+                front:front,
+                back:back,
+                deck:yourDecks,
+                card: {
+                    front:front,
+                    back:back
+                },
+                error:e
+            })
+            return
         }
-        console.log("This is the id: "+id)
-        res.render(path.resolve('views/singleDeck.handlebars'),{title:deck.name,id:id})
+        console.dir(deck)
+        if(req.session.user){
+            res.json({
+                handlebars:path.resolve('views/singleDeck.handlebars'),
+                title:deck.name,
+                id:id,
+                front:front,
+                back:back,
+                card: {
+                    front:front,
+                    back:back
+                },
+                error:undefined
+            })
+        }
     })
 
 module.exports = router;
