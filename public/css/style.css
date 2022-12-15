@@ -23,8 +23,13 @@
 
 .deck-list li {
     font-size: 40px;
+    margin: 0px 30px;
 }
-
+div {
+    text-align: center;
+    font-size: 50px;
+    color:rgb(255,0,0);
+}
 p {
 	color: var(--text-yellow);
 	font-weight: normal;

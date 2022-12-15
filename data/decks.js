@@ -5,11 +5,9 @@ const userFunctions = require('./users')
 const validation=require('../validation')
 const {ObjectId} = require('mongodb');
 
-const frontLen=20
-const backLen=200
-
 const createDeck = async (creator,deckName,subject,isPublic) => {
     deckName=validation.checkDeckName(deckName);
+    creator=validation.checkUsername(creator)
     const deckCollection=await decks();
     const tempDeck=await deckCollection.findOne({name: deckName})
     if(tempDeck) {
@@ -17,19 +15,17 @@ const createDeck = async (creator,deckName,subject,isPublic) => {
     }
     let user=undefined;
     try {
-        user = await userFunctions.getUserIdByName(creator)
+        user = await userFunctions.getUserIdFromName(creator)
     }
     catch(e) {
         console.dir(e)
     }
-    // console.log("creator: "+creator)
-    // console.log(user)
     let d=new Date()
     let newDeck = {
         name:deckName,
         dateCreated:`${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`,
         subject:subject,
-        creatorId:user._id.toString(),
+        creatorId:user,
         public:isPublic,
         cards: []
     }
@@ -82,9 +78,18 @@ const getAllDecks = async () => {
     return deckList
 }
 
+const getUsersDecks = async(userId) => {
+    userId=validation.checkId(userId)
+    const allDecks = await getAllDecks();
+    let userDecks = allDecks.filter(deck => {
+        return deck.creatorId.toString()===userId.toString()
+    })
+    return userDecks
+}
+
 const createCard = async (front,back,deckName) => {
-    front=validation.checkCard(front,'front',frontLen)
-    back=validation.checkCard(back,'back',backLen)
+    front=validation.checkCard(front,'front')
+    back=validation.checkCard(back,'back')
     const deck=await deckCollection.findOne({name:deckName})
     const deckId=deck.ObjectId()
     if(!deck) throw "Deck not found"
@@ -127,8 +132,8 @@ const removeCard = async (id,frontToRemove) => {
 
 const updateCard = async (id,oldFront,newFront,newBack) => {
     id=validation.checkId(id)
-    newFront=validation.checkCard(newFront,'front',frontLen)
-    newBack=validation.checkCard(newBack,'back',backLen)
+    newFront=validation.checkCard(newFront,'front')
+    newBack=validation.checkCard(newBack,'back')
     const deckCollection=await decks()
     const updatedCard = {
         front:newFront,
@@ -157,6 +162,7 @@ module.exports = {
     createDeck,
     getDeckById,
     getAllDecks,
+    getUsersDecks,
     renameDeck,
     removeDeck,
     createCard,

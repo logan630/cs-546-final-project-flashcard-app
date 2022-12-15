@@ -1,18 +1,22 @@
 const {ObjectId} = require('mongodb')
 
+const frontLenMax=50
+const backLenMax=200
+const deckNameLenMax=30
+
 function checkDeckName(deckName){
-    if(!deckName) throw new Error("Error: Deck name is not defined")
+    if(!deckName) throw new Error("Deck name is not defined")
     if(typeof deckName!=='string') throw "Deck name must be a string"
     if(deckName.trim().length===0) throw "Deck name cannot be empty spaces"
     deckName=deckName.trim()
-    if(deckName.length>30) throw "Deck name cannot be longer than 30 characters"
+    if(deckName.length>deckNameLenMax) throw `Deck name cannot be longer than ${deckNameLenMax} characters`
     if(deckName.length<=1) throw "Deck name must be at least 2 characters"
     if((/[/\\]/).test(deckName)) throw "Deck name contains an illegal character"
     return deckName
 }
 
 const checkUsername = (username) => {
-    if(!username) throw ("You must supply a username")
+    if(!username) throw new Error("You must supply a username")
     if(typeof username!=='string') throw "Username must be a string"
     //username length and spaces
     if(username.includes(" ")) throw "Username cannot include spaces"
@@ -23,7 +27,7 @@ const checkUsername = (username) => {
 }
   
 const checkPassword = (password) => {
-    if(!password) throw ("You must supply a password")
+    if(!password) throw new Error("You must supply a password")
     if(typeof password!=='string') throw "Password must be a string"
     //password length and spaces
     if(password.includes(" ")) throw "Password cannot include spaces"
@@ -37,7 +41,7 @@ const checkPassword = (password) => {
 }  
 
 function checkSubject(sub){
-    if(typeof sub!=='string') throw "Subject must be a string"
+    if(typeof sub!=='string') throw new Error("Subject must be a string")
     sub=sub.trim()
     if(sub.length>50) throw "Subject cannot be longer than 50 characters"
     if((/[/\\]/).test(sub)) throw "Subject name contains an illegal character"
@@ -46,19 +50,22 @@ function checkSubject(sub){
 }
 
 function checkId(id){
-    if(!id) throw "id is not defined"
-    if(typeof id!=='string') throw 'id is not a string'
+    if(!id) throw new Error("id is not defined")
+    if(typeof id!=='string') throw new Error('id is not a string')
     if(id.trim().length===0) throw new Error("id cannot be an empty string or just spaces")
     id=id.trim();
     if(!ObjectId.isValid(id)) throw new Error("Invalid object id")
     return id
 }
 
-function checkCard(contents,forb,maxLen){
-    if(!contents) throw `Card ${forb} is not defined`
+function checkCard(contents,forb){
+    if(!contents) throw new Error(`Card ${forb} is not defined`)
     if(typeof contents!=='string') throw `Card ${forb} contents is not a string`
     if(contents.trim().length<=1) throw `Card ${forb} must be at least one character`
     contents=contents.trim()
+    let maxLen=0
+    if(forb==='front') maxLen=frontLenMax
+    else if(forb==='back') maxLen=backLenMax
     if(contents.length>maxLen) throw `Card ${forb} contents is longer than ${maxLen}`
     return contents
 }

@@ -13,7 +13,7 @@ const createUser = async (
     if(await userCollection.findOne({username:checked_username})) {
       throw "That user already exists"
     }
-    let checked_password=checkPassword(password);
+    let checked_password=validation.checkPassword(password);
     const hashed_pw=await bcrypt.hash(checked_password.toString(),saltRounds)
     let newUser= {
       username: checked_username,
@@ -44,7 +44,7 @@ const getAllUsers = async () => {
     return userList
 }
 
-const getUserById = async(id) => {
+const getUserFromId = async(id) => {
   id=validation.checkId(id)
   const userCollection=await users()
   const userFromId=await userCollection.findOne({_id:ObjectId(id)});
@@ -53,12 +53,33 @@ const getUserById = async(id) => {
   return userFromId
 }
 
-const getUserIdByName = async (userName) => {
+const getUsernameFromId = async(user) => {
+  userName=validation.checkUsername(userName)
+  const userCollection = await users();
+  const userFromName = await userCollection.findOne({username:userName})
+  if(!userFromName) throw "Error: no user with name" +userName+" found"
+  return userFromName._id.toString()
+}
+
+const getUserFromName = async (userName) => {
   userName=validation.checkUsername(userName)
   const userCollection = await users();
   const userFromName = await userCollection.findOne({username:userName})
   if(!userFromName) throw "Error: no user with name" +userName+" found"
   return userFromName
 }
+
+const getUserIdFromName = async (userName) => {
+  const user=await getUserFromName(userName)
+  return user._id.toString()
+}
   
-module.exports = {createUser,checkUser,getAllUsers,getUserById,getUserIdByName};
+module.exports = {
+  createUser,
+  checkUser,
+  getAllUsers,
+  getUserFromId,
+  getUsernameFromId,
+  getUserFromName,
+  getUserIdFromName
+};
