@@ -1,18 +1,24 @@
-<header>
-    <h1>Welcome to QuackDown Study</h1>
+<header class="titlecard-header">
+    <h1 class="title">QuackDown Study</h1>
 </header>
 {{#if loggedIn}}
     <p>You are logged in (unironically)</p>
     <article class="login-homepage-buttons">
         <h2>Your actions:</h2>
-        <a href="/protected">Visit your page</a> <br>
-        <a href="/logout">Logout</a>
+        <div class="actions-container">
+            <p><a href="/protected">Visit your page</a></p>
+            <p class="text">or</p>
+            <p><a href="/logout">Logout</a></p>
+        </div>
     </article>
 {{else}}
-    <form action="/register" method="GET" class="register-form-homepage">
-        <button>Register</button>
-    </form>
-    <form action="/login" method="GET" class="login-form-homepage">
-        <button>Login</button>
-    </form>
+    <div class="entry-button-container">
+        <form action="/register" method="GET" class="register-form-homepage">
+            <button class="entry-button">Register</button>
+        </form>
+        <p class="entry-inner-text">or</p>
+        <form action="/login" method="GET" class="login-form-homepage">
+            <button class="entry-button">Login</button>
+        </form>
+    </div>
 {{/if}}
