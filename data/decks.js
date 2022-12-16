@@ -6,10 +6,12 @@ const {ObjectId} = require('mongodb');
 const { use } = require('../routes/userRoutes');
 
 const createDeck = async (creator,deckName,subject,isPublic) => {
-    deckName=validation.checkDeckName(deckName);
-    creator=validation.checkUsername(creator)
+    deckName = validation.checkDeckName(deckName);
+    creator  = validation.checkUsername(creator);
+    subject  = validation.checkSubject(subject);
+    
     const deckCollection=await decks();
-    const tempDeck=await deckCollection.findOne({name: deckName})           //if the deck already exists
+    const tempDeck=await deckCollection.findOne({name: deckName.toLocaleLowerCase()})           //if the deck already exists
     if(tempDeck) {
         throw (`A deck named ${deckName} already exists`)
     }

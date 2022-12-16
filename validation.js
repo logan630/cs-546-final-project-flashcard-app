@@ -22,7 +22,7 @@ const checkUsername = (username) => {
     if((/[ \s]/).test(username)) throw "Username cannot include spaces"
     if((/[^a-z0-9]/i).test(username)) throw "Username must only consist of alphanumeric characters"
     username=username.trim().toLowerCase()
-    if(username.length<4) throw "Username must be at least 4 characters long"
+    if(username.length < 4) throw "Username must be at least 4 characters long"
     return username
 }
   
@@ -40,13 +40,15 @@ const checkPassword = (password) => {
     return password
 }  
 
-function checkSubject(sub){
-    if(typeof sub!=='string') throw new Error("Subject must be a string")
-    sub=sub.trim()
-    if(sub.length>50) throw "Subject cannot be longer than 50 characters"
-    if((/[/\\]/).test(sub)) throw "Subject name contains an illegal character"
-    if(sub.length===0) sub="(No subject)"
-    return sub
+function checkSubject(subject){
+    if(!subject) throw new Error("You must supply a subject")
+    console.log(subject);
+    if(typeof subject!=='string') throw new Error('Subject is not a string')
+    subject=subject.trim()
+    if(subject.length>50) throw "Subject cannot be longer than 50 characters"
+    if((/[/\\]/).test(subject)) throw "Subject name contains an illegal character"
+    if(subject.length===0) subject="(No subject)"
+    return subject
 }
 
 function checkId(id){

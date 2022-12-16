@@ -1,7 +1,8 @@
 (function ($) {
     //creating and adding a deck
     let createDeckForm=$('#create-deck-form')
-    let deckNameInput=$('#decknameInput')            
+    let deckNameInput=$('#decknameInput')
+    let deckSubjectInput=$('#decksubjectInput')
     let deckList=$('#deck-list')
     //creating and adding cards
     let createCardForm=$('#create-card-form')
@@ -86,13 +87,13 @@
                 method: "POST",
                 url: "/protected/decks",
                 contentType: "application/json",
-                data: JSON.stringify({name: newDeckName})
+                data: JSON.stringify({name: newDeckName, subject: deckSubjectInput.val()})
             }
             $.ajax(requestConfig)/*sends that request*/.then(function (responseMessage) {     
                 let id=responseMessage.id        
                 if(responseMessage.success) {   //id produced (createDeck passed)
                     errorDiv.hidden=true
-                    const listItem = `<li> <a href="decks/${id}">${$('#decknameInput').val()}</a> </li>`
+                    const listItem = `<li> <a href="decks/${id}">${$('#decknameInput').val()}</a> ${$('#decksubjectInput').val()} </li>`
                     deckList.append(listItem)       //if valid deck data, add it to the list
                 }
                 else{   //for when createDeck fails

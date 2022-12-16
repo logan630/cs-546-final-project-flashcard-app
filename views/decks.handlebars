@@ -3,12 +3,13 @@
     <p>Create a new deck:</p> <br>
     <div id="error" class="error" hidden>{{errorMessage}}</div>
     <form action="/protected/decks" method="POST" id="create-deck-form" class="create-deck-form">
-        <label for="decknameInput">Deck name <input id="decknameInput" type="text" name="decknameInput"></label>
+        <label for="decknameInput">Deck name:<input id="decknameInput" type="text" name="decknameInput"></label><br>
+        <label for="decksubjectInput">Deck subject:<input id="decksubjectInput" type="text" name="decksubjectInput"></label>
         <button type="submit" class="submit-button">Create Deck</button>
     </form>
         <ol id="deck-list" class="deck-list">
             {{#each deck}}
-                <li><a href="decks/{{this._id}}">{{this.name}}</a></li>
+                <li><a href="decks/{{this._id}}">{{this.name}}</a> {{this.subject}} </li>
             {{/each}}
         </ol>
 </main>

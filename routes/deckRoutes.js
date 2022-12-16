@@ -53,7 +53,7 @@ router
         let newDeck=undefined;
         let error=undefined;
         try {                                       //req.body.name is the name of the deck
-            newDeck = await decks.createDeck(u,req.body.name,"<subject here>", false)
+            newDeck = await decks.createDeck(u, deckInfo.name, deckInfo.subject, false)
         }
         catch(e){           //if creating a deck fails, send handlebars page with thrown error
             console.log(e)
@@ -72,6 +72,7 @@ router
         if(req.session.user){       //if it passes, create a deck with undefined error and a new deck id
             res.json({
                 handlebars:path.resolve('views/decks.handlebars'),
+                subject: deckInfo.subject,
                 title:u,
                 deck:yourDecks,
                 id:newDeckId,
@@ -105,7 +106,7 @@ router      //just one deck
         }
         //console.log("deck cards",deck.cards)
         if(req.session.user){       //if they are logged in, render the page for that deck
-            res.render(path.resolve('views/singleDeck.handlebars'),{title:deck.name,card:deck.cards,deckName:deck.name})
+            res.render(path.resolve('views/singleDeck.handlebars'),{title:deck.name, card:deck.cards, deckName:deck.name, subject: deck.subject})
         }
     })
     .post(async (req,res) => {      // /decks/:id /post route (when you create a new cards)

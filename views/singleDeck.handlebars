@@ -1,11 +1,12 @@
 <main>
     <h1 id="deckName" class="deckName">{{deckName}}</h1>
+    <h2 id="deckSubject" class="deckSubject">{{subject}}</h2>
     <p>Create a new card:</p> <br>
     <div id="error" class="error" hidden>{{errorMessage}}</div>
     <link rel="stylesheet" href="/public/css/style.css"> <!--This is needed because this page can't inherit the css link from main for some reason-->
     <form action="/protected/decks" method="POST" id="create-card-form" class="create-card-form">
         <label for="cardFrontInput">Front</label>
-        <input id="cardFrontInput" type="text" name="cardFrontInput"> <br>
+        <input id="cardFrontInput" type="text" name="cardFrontInput"><br>
         <label for="cardBackInput">Back</label>
         <textarea id="cardBackInput" name="cardBackInput" rows="4" cols="30"></textarea> <br>
         <button type="submit">Add card</button>
