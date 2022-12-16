@@ -43,9 +43,8 @@ const removeDeck = async (id) => {      //deletes deck by id
         deckName=(await getDeckById(id)).name
     }
     catch(e){
-        throw e
+        console.log(e)
     }
-
     const deletionInfo=await deckCollection.deleteOne({_id:ObjectId(id)})
 
     if(deletionInfo.deletedCount===0) throw "Could not delete deck"
@@ -107,14 +106,14 @@ const doesUserOwnThisDeck = async(userName,deckId) => {     //returns whether or
         userId=await userFunctions.getUserIdFromName(userName)
     }
     catch(e){
-        throw e
+        console.log(e)
     }
     let deckFromId=undefined;
     try{
         deckFromId=await getDeckById(deckId)
     }
     catch(e){
-        throw e
+        console.log(e)
     }
     if(deckFromId.creatorId===userId.toString())
         return true

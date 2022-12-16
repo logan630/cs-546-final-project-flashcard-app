@@ -62,6 +62,7 @@ router
                 handlebars:path.resolve('views/decks.handlebars'),
                 title:u,
                 deck:yourDecks,
+                success:false,
                 error:e.toString()
             })
             res.status(400)
@@ -74,6 +75,7 @@ router
                 title:u,
                 deck:yourDecks,
                 id:newDeckId,
+                success:true,
                 error:error
             })
             //res.render(path.resolve('views/decks.handlebars'),{title:u,deck:yourDecks,userName:u,id:newDeckId})
@@ -135,6 +137,7 @@ router      //just one deck
                 front: card ? front : undefined,            //if createCard return a valid card, send front and back back to ajax
                 back: card ? back : undefined,
                 deckName:deck.name,
+                success:false,
                 error:e.toString()
             })
             return
@@ -147,16 +150,17 @@ router      //just one deck
                 front:front,                //sending valid data for front and back
                 back:back,
                 deckName:deck.name,
-                error:undefined
+                success:true,
+                
             })
         }
     })
-    .patch( async(req, res) => {            //updating deck name
+    .patch( async(req, res) => {            // /decks/:id patch route. updating deck name
         let id=validation.checkId(req.params.id)
         let newDeckName=req.body.name
         if(!newDeckName){
             res.sendStatus(400)
-            return e
+            return
         }
         try{    
             newDeckName=validation.checkDeckName(newDeckName)
@@ -169,6 +173,7 @@ router      //just one deck
                 title:newDeckName,
                 id:undefined,
                 deckName:newDeckName,
+                success:false,
                 error:e.toString()
             })
             return
@@ -179,10 +184,37 @@ router      //just one deck
                 title:newDeckName,
                 id:id,
                 deckName:newDeckName,
+                success:true,
                 error:undefined
             })
         }
     })
+    .delete( async(req, res) => {       // /decks/:id   delete route. Delete a deck
+        let id=validation.checkId(req.params.id)
+        let result=undefined
+        try{
+            result=await decks.removeDeck(id)
+        }
+        catch(e){
+            console.log(e)
+            res.json({
+                handlebars:path.resolve('views/singleDeck.handlebars'),
+                success:false,
+                error:e
+            })
+        }
+        if(req.session.user){   
+            res.json({
+                handlebars:path.resolve('views/decks.handlebars'),
+                success:true,
+                error:undefined
+            })
+        }
+        else{
+            console.log("Not logged in :(")
+
+        }
+    })  
 
 /*router
     .route('/decks/:id/card')

@@ -1,17 +1,20 @@
 (function ($) {
-
+    //creating and adding a deck
     let createDeckForm=$('#create-deck-form')
     let deckNameInput=$('#decknameInput')            
     let deckList=$('#deck-list')
-
+    //creating and adding cards
     let createCardForm=$('#create-card-form')
     let cardFrontInput=$('#cardFrontInput')
     let cardBackInput=$('#cardBackInput')
     let cardList=$('#card-list')
-
+    //editing deck names
     let editDeckForm=$('#edit-deck-form')
     let newDeckNameInput=$('#newDeckName')
-
+    let deckName_h1=$('#deckName')
+    //deleting decks
+    let deleteDeckButton=$('#delete-deck')
+    //errors
     let errorDiv=document.getElementById('error')
     let errorDiv2=document.getElementById('error2') //error for submitting a bad deck name (renaming)
     
@@ -58,9 +61,9 @@
                 let front=responseMessage.front
                 let back=responseMessage.back
                 //at this point, if the input is valid, the card was already added to the card list. This will just show it in the list without a refresh
-                if(front && back) {         //if valid front and back data, add it to the list 
+                if(responseMessage.success) {         //if valid front and back data, add it to the list 
                     errorDiv.hidden=true
-                    const listItem = `<li> <a href="decks/${id}">${$('#cardFrontInput').val()} : ${$('#cardBackInput').val()}</a> </li>`
+                    const listItem = `<li> <a href="decks/${id}">${front} : ${back}</a> </li>`
                     cardList.append(listItem)
                 }
                 else{           //if the card was not added (input functions threw), show the error, and focus on the form again
@@ -87,7 +90,7 @@
             }
             $.ajax(requestConfig)/*sends that request*/.then(function (responseMessage) {     
                 let id=responseMessage.id        
-                if(id) {   //id produced (createDeck passed)
+                if(responseMessage.success) {   //id produced (createDeck passed)
                     errorDiv.hidden=true
                     const listItem = `<li> <a href="decks/${id}">${$('#decknameInput').val()}</a> </li>`
                     deckList.append(listItem)       //if valid deck data, add it to the list
@@ -104,8 +107,9 @@
     })
     //for editing a deck name
     editDeckForm.submit(function (event) {
+        event.preventDefault();
         let deckNewName=newDeckNameInput.val()          //gets data from the form where the user submits the new deck name
-        if(deckNewName){
+        if(deckNewName){            //if new deck name was accepted
             let url=window.location.href.substring(window.location.href.indexOf("/protected"));     //gets deck id
             let requestConfig={
                 method: "PATCH",
@@ -115,9 +119,10 @@
             }
             $.ajax(requestConfig)/*sends that request*/.then(function (responseMessage) {
                 let id=responseMessage.id
-                if(id){
+                if(responseMessage.success){
                     errorDiv2.hidden=true
                     deckList.innerHTML=`<li> <a href="decks/${id}">${$('#newDeckName').val()}</a> </li>`
+                    deckName_h1.replaceWith(`<h1 id="deckName" class="deckName">${deckNewName}</h1>`)   //updates deck name at top of page
                 }
                 else{
                     errorDiv2.hidden=false
@@ -128,6 +133,28 @@
                 $('#edit-deck-form').trigger('reset')
             })
         }
+    })
+    //for deleting a deck
+    deleteDeckButton.on('click', function (event) {
+        event.preventDefault();
+        let url=window.location.href.substring(window.location.href.indexOf("/protected"));     //gets deck id
+        let id=url.substring(url.indexOf("/decks/")+7)
+        //console.log(id)
+        let requestConfig = {
+            method: "DELETE",
+            url: url,
+            contentType:"application/json",
+            data: JSON.stringify({id:id})
+        }
+        $.ajax(requestConfig).then(function (responseMessage) {
+            if(responseMessage.success){
+                alert("Deck successfully deleted")
+                window.location.href='/protected/decks'
+            }
+            else{
+                alert(responseMessage.error)
+            }
+        })
     })
 })(window.jQuery)
 
