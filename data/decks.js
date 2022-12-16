@@ -1,17 +1,17 @@
 const mongoCollections = require('../config/mongoCollections');
 const decks = mongoCollections.decks
-const users = mongoCollections.users
 const userFunctions = require('./users')
 const validation=require('../validation')
 const {ObjectId} = require('mongodb');
+const { use } = require('../routes/userRoutes');
 
 const createDeck = async (creator,deckName,subject,isPublic) => {
     deckName=validation.checkDeckName(deckName);
     creator=validation.checkUsername(creator)
     const deckCollection=await decks();
-    const tempDeck=await deckCollection.findOne({name: deckName})
+    const tempDeck=await deckCollection.findOne({name: deckName})           //if the deck already exists
     if(tempDeck) {
-        throw `A deck named ${deckName} already exists`
+        throw (`A deck named ${deckName} already exists`)
     }
     let user=undefined;
     try {
@@ -21,7 +21,7 @@ const createDeck = async (creator,deckName,subject,isPublic) => {
         console.dir(e)
     }
     let d=new Date()
-    let newDeck = {
+    let newDeck = {         //creating deck object  
         name:deckName,
         dateCreated:`${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`,
         subject:subject,
@@ -29,28 +29,38 @@ const createDeck = async (creator,deckName,subject,isPublic) => {
         public:isPublic,
         cards: []
     }
-    const insertDeck=await deckCollection.insertOne(newDeck)
+    const insertDeck=await deckCollection.insertOne(newDeck)        //insert that deck object
     if(!insertDeck.acknowledged || !insertDeck.insertedId) 
         throw "Could not add deck"
     return insertDeck
 }
 
-const removeDeck = async (id) => {
+const removeDeck = async (id) => {      //deletes deck by id
     id=validation.checkId(id)
     const deckCollection=await decks();
-    let deckName=(await getDeckById(id)).name
+    let deckName=undefined
+    try{
+        deckName=(await getDeckById(id)).name
+    }
+    catch(e){
+        throw e
+    }
+
     const deletionInfo=await deckCollection.deleteOne({_id:ObjectId(id)})
 
     if(deletionInfo.deletedCount===0) throw "Could not delete deck"
     return deckName+" has been successfully deleted"
 }
 
-const renameDeck = async (id, newName) => {
+const renameDeck = async (id, newName, newPublicity) => {         //updates deck of id with name newName
     id=validation.checkId(id)
     newName=validation.checkDeckName(newName)
     let deckCollection=await decks()
-    const updatedDeck = {
+    let updatedDeck = {
         name:newName
+    }
+    if(typeof newPublicity!='undefined'){
+        updatedDeck.public=newPublicity
     }
     const updatedInfo = await deckCollection.updateOne(
         {_id:ObjectId(id)},
@@ -60,15 +70,17 @@ const renameDeck = async (id, newName) => {
     return await getDeckById(id);
 }
 
-const getDeckById = async (deckId) => {
+const getDeckById = async (deckId) => {         //finds a deck object given a deck id
     deckId=validation.checkId(deckId.toString())
     const deckCollection=await decks();
     const deck=await deckCollection.findOne({_id: ObjectId(deckId)});
-    if(!deck) throw `Could not find deck with id of ${deckId}`
+    if(!deck){
+        throw new Error(`Could not find deck with id of ${deckId}`)
+    }
     return deck;
 }
 
-const getAllDecks = async () => {
+const getAllDecks = async () => {               //returns an array of all the decks
     const deckCollection=await decks()
     const deckList=await deckCollection.find({}).toArray();
     if(!deckList) throw "Could not get all decks"
@@ -78,7 +90,7 @@ const getAllDecks = async () => {
     return deckList
 }
 
-const getUsersDecks = async(userId) => {
+const getUsersDecks = async(userId) => {            //gets the decks for a specific user
     userId=validation.checkId(userId)
     const allDecks = await getAllDecks();
     let userDecks = allDecks.filter(deck => {
@@ -87,20 +99,41 @@ const getUsersDecks = async(userId) => {
     return userDecks
 }
 
+const doesUserOwnThisDeck = async(userName,deckId) => {     //returns whether or not a given deck (by id) is owned by the user (userName)
+    userName=validation.checkUsername(userName)
+    deckId=validation.checkId(deckId)
+    let userId=undefined
+    try{
+        userId=await userFunctions.getUserIdFromName(userName)
+    }
+    catch(e){
+        throw e
+    }
+    let deckFromId=undefined;
+    try{
+        deckFromId=await getDeckById(deckId)
+    }
+    catch(e){
+        throw e
+    }
+    if(deckFromId.creatorId===userId.toString())
+        return true
+    return false
+}
+
 const createCard = async (front,back,deckName) => {
     front=validation.checkCard(front,'front')
     back=validation.checkCard(back,'back')
     const deckCollection=await decks();
     const deck=await deckCollection.findOne({name:deckName})
-    const deckId=deck._id
     if(!deck) throw "Deck not found"
-    /*if(deck.cards.length>0)
-        for(i in deck.cards){
-            
+    const deckId=deck._id
+    if(deck.cards.length>0)             //checks if that card (front) is already present in the deck
+        for(i of deck.cards){
             if(i.front.toLowerCase()===front.toLowerCase()){
                 throw `A card named ${front} already exists`
             }
-        }*/
+        }
     let tempObject=deck
     let newCard={
         front:front,
@@ -114,7 +147,7 @@ const createCard = async (front,back,deckName) => {
         })
 }
 
-const removeCard = async (id,frontToRemove) => {
+const removeCard = async (id,frontToRemove) => {            //takes a deckId and the front of a card. Removes card with that front from deck with that id
     id=validation.checkId(id)
     const deckFromId=getDeckById(id)
     const cards=deckFromId.cards
@@ -133,7 +166,7 @@ const removeCard = async (id,frontToRemove) => {
     return await getDeckById(id)
 }
 
-const updateCard = async (id,oldFront,newFront,newBack) => {
+const updateCard = async (id,oldFront,newFront,newBack) => {   //takes a deck id and the front of a card to change. Updates the card front and back with new info
     id=validation.checkId(id)
     newFront=validation.checkCard(newFront,'front')
     newBack=validation.checkCard(newBack,'back')
@@ -144,7 +177,7 @@ const updateCard = async (id,oldFront,newFront,newBack) => {
     }
     const deckToUpdate=getDeckById(id)
     let found=false
-    for(card in deckToUpdate){
+    for(card of deckToUpdate.cards){            //searches for the card with that front
         if(card[front].toLowerCase()===oldFront.toLowerCase()){
             //card[front]=newFront
             found=true
@@ -166,6 +199,7 @@ module.exports = {
     getDeckById,
     getAllDecks,
     getUsersDecks,
+    doesUserOwnThisDeck,
     renameDeck,
     removeDeck,
     createCard,

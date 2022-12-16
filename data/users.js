@@ -5,18 +5,18 @@ const users = mongoCollections.users
 const validation=require('../validation')
 const {ObjectId} = require('mongodb');
 
-const createUser = async (
+const createUser = async (      //checks if user submitted valid credentials when registering
     username, password
   ) => { 
-    let checked_username=validation.checkUsername(username);
+    username=validation.checkUsername(username);
     const userCollection=await users(); 
-    if(await userCollection.findOne({username:checked_username})) {
+    if(await userCollection.findOne({username:username})) {
       throw "That user already exists"
     }
-    let checked_password=validation.checkPassword(password);
-    const hashed_pw=await bcrypt.hash(checked_password.toString(),saltRounds)
+    password=validation.checkPassword(password);
+    const hashed_pw=await bcrypt.hash(password.toString(),saltRounds)
     let newUser= {
-      username: checked_username,
+      username: username,
       password: hashed_pw
     }
     const insertUser=await userCollection.insertOne(newUser);
@@ -25,7 +25,7 @@ const createUser = async (
     return {insertedUser: true}
   };
 
-const checkUser = async (username, password) => { 
+const checkUser = async (username, password) => {   //checks if user login is valid
     username=validation.checkUsername(username)
     password=validation.checkPassword(password)
     const userCollection=await users();
@@ -44,7 +44,7 @@ const getAllUsers = async () => {
     return userList
 }
 
-const getUserFromId = async(id) => {
+const getUserFromId = async(id) => {    //given an id of a user, return the user object
   id=validation.checkId(id)
   const userCollection=await users()
   const userFromId=await userCollection.findOne({_id:ObjectId(id)});
@@ -53,15 +53,8 @@ const getUserFromId = async(id) => {
   return userFromId
 }
 
-const getUsernameFromId = async(user) => {
-  userName=validation.checkUsername(userName)
-  const userCollection = await users();
-  const userFromName = await userCollection.findOne({username:userName})
-  if(!userFromName) throw "Error: no user with name" +userName+" found"
-  return userFromName._id.toString()
-}
 
-const getUserFromName = async (userName) => {
+const getUserFromName = async (userName) => {       //given a username, return the object that corresponds to it
   userName=validation.checkUsername(userName)
   const userCollection = await users();
   const userFromName = await userCollection.findOne({username:userName})
@@ -69,7 +62,7 @@ const getUserFromName = async (userName) => {
   return userFromName
 }
 
-const getUserIdFromName = async (userName) => {
+const getUserIdFromName = async (userName) => {     //given a username, return the id of that user
   const user=await getUserFromName(userName)
   return user._id.toString()
 }
@@ -79,7 +72,6 @@ module.exports = {
   checkUser,
   getAllUsers,
   getUserFromId,
-  getUsernameFromId,
   getUserFromName,
   getUserIdFromName
 };

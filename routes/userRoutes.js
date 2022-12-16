@@ -14,18 +14,13 @@ router
     if(req.session.user){
       isLoggedIn=true
     }
-    res.render(path.resolve('views/startPage.handlebars'),{title:"QuackDown Study",loggedIn:isLoggedIn})
+    res.render(path.resolve('views/startPage.handlebars'),{title:"QuackDown Study",loggedIn:isLoggedIn})  //displays different stuff based on whether the user is logged in or not
   })
 
 router
   .route('/register')
   .get(async (req, res) => {  
-     /* if(req.session.user){       //when the user tries to go to the register page if they are already logged in.
-        res.redirect('/protected')
-      }
-      else {*/
-        res.render(path.resolve('views/register.handlebars'),{title: "Register"})
-      //}
+      res.render(path.resolve('views/register.handlebars'),{title: "Register"})
   })
   .post(async (req,res) => {
     //when the user submits data from the registration form 
@@ -45,7 +40,7 @@ router
       res.status(500).send("Internal Server Error")
       return
     }
-    if(check.insertedUser==true){
+    if(check.insertedUser==true){     //once user is properly inserted, redirect to the homepage
       res.redirect('/')
     }
 
@@ -54,12 +49,7 @@ router
 router
   .route('/login')
   .get(async (req,res) => {
-    /*try {
-      res.render(path.resolve('views/login.handlebars'),{title: "Login"})
-    }
-    catch(e){*/
     res.render(path.resolve('views/login.handlebars'),{title: "Login"})
-    //}
   })
   .post(async (req,res) => {
     let check={}
@@ -68,7 +58,7 @@ router
       validation.checkPassword(req.body.passwordInput)
       check=await users.checkUser(req.body.usernameInput,req.body.passwordInput) 
     }
-    catch(e){
+    catch(e){     //if the user puts in bad data
         res.render(path.resolve('views/login.handlebars'),{errorMessage:e,title:"Login error"})
         res.status(400)
         console.log(e)
@@ -79,8 +69,7 @@ router
       return
     }
     if(check.authenticatedUser==true){
-      
-      //req.session.cookie.name="AuthCookie"
+      //if the user logs in successfully, set the session user to be the username, and redirect to protected
       req.session.user={username: req.body.usernameInput}
       res.redirect('/protected')
     }
@@ -99,7 +88,7 @@ router
     let time=`${fn(currentDate.getHours())}:${fn(currentDate.getMinutes())}:${fn(currentDate.getSeconds())}`;
     if(req.session.user){
       let u=req.session.user.username;
-      res.render(path.resolve('views/private.handlebars'),{
+      res.render(path.resolve('views/private.handlebars'),{     //renders private page with current date/time
         username:u,
         date:date,
         time:time,
@@ -107,15 +96,13 @@ router
         title:u
       })
     }
-    else{
 
-    }
   })
 
 router
   .route('/logout')       
   .get(async (req, res) => {
-    if(!req.session.user){
+    if(!req.session.user){      //if they aren't logged in, they shouldn't be able to view the logout page.
       res.redirect('/')
     }
     else {

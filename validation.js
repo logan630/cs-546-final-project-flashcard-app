@@ -19,7 +19,7 @@ const checkUsername = (username) => {
     if(!username) throw new Error("You must supply a username")
     if(typeof username!=='string') throw "Username must be a string"
     //username length and spaces
-    if(username.includes(" ")) throw "Username cannot include spaces"
+    if((/[ \s]/).test(username)) throw "Username cannot include spaces"
     if((/[^a-z0-9]/i).test(username)) throw "Username must only consist of alphanumeric characters"
     username=username.trim().toLowerCase()
     if(username.length<4) throw "Username must be at least 4 characters long"
@@ -30,7 +30,7 @@ const checkPassword = (password) => {
     if(!password) throw new Error("You must supply a password")
     if(typeof password!=='string') throw "Password must be a string"
     //password length and spaces
-    if(password.includes(" ")) throw "Password cannot include spaces"
+    if((/[ \s]/).test(password)) throw "Password cannot include spaces"
     
     if(password.length<6) throw "Password must be at least 6 characters long"
     //password criteria
@@ -58,10 +58,10 @@ function checkId(id){
     return id
 }
 
-function checkCard(contents,forb){
+function checkCard(contents,forb){          //it's forbin time
     if(!contents) throw new Error(`Card ${forb} is not defined`)
     if(typeof contents!=='string') throw `Card ${forb} contents is not a string`
-    if(contents.trim().length<=1) throw `Card ${forb} must be at least one character`
+    if(contents.trim().length<2) throw `Card ${forb} must be at least two characters`
     contents=contents.trim()
     let maxLen=0
     if(forb==='front') maxLen=frontLenMax

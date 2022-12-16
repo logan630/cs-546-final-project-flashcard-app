@@ -4,10 +4,9 @@ const static=express.static(__dirname+'/public')
 const session=require('express-session')
 const configRoutes=require('./routes')
 const path=require('path')
+const decks=require('./data/decks')
 const exphbs=require('express-handlebars')
 const connection=require('./config/mongoConnection')
-const {ObjectId}=require('mongodb')
-const constructorMethod = require('./routes')
 
 app.use('/public',static)
 app.use(express.json())
@@ -19,20 +18,40 @@ app.set('view engine', 'handlebars');
 app.use(            //authentication middleware
     session({
         name:'AuthCookie',
-        secret: "Some secret string",
+        secret: "Oh the middleware, everybody wants to be my checkId",
         resave: false,
         saveUninitialized: true,
         cookie: {maxAge: 600000}
     })
 )
 
-app.use('/protected', (req, res, next) => {
+app.use('/protected', (req, res, next) => {     //redirect to home if not authenticated
     if (!req.session.user) {
         return res.redirect('/')
     } else {
       next();
     }
   });
+app.use('/protected/decks/:id', async (req,res,next) => {     //if the id in the url does not belong to the user's decks (the deck was made by another user, or the deck is invalid)
+  if (!req.session.user) {
+    return res.redirect('/')
+  }
+  let id=req.originalUrl.substring(req.originalUrl.indexOf('/decks/')+7)
+  let doesOwn=undefined
+  try{
+    doesOwn=await decks.doesUserOwnThisDeck(req.session.user.username,id)
+  }
+  catch(e){
+    return res.redirect('/protected/decks')
+  }
+  if(!doesOwn){
+    console.log("You do not own that deck")
+    res.redirect('/protected/decks')
+  }
+  else {
+    next();
+  }
+})
 app.use('/login', (req, res, next) => {
     if (req.session.user) {
       return res.redirect('/protected');
@@ -48,7 +67,7 @@ app.use('/register', (req, res, next) => {
     }
   });
 
-app.use( async (req,res,next) => {          //logging middleware
+app.use( async (req,res,next) => {          //logging middleware, runs on every route
     //log method it is, URL, and if the user is authenticated
     let start=(new Date().toUTCString()+" "+req.method+" "+req.originalUrl)
     if(req.session.user){
@@ -63,7 +82,6 @@ app.use( async (req,res,next) => {          //logging middleware
 configRoutes(app);
 const main=async() => {
     const db = await connection.dbConnection();
-    //console.log("here2")
 }
 
 app.listen(3000, () => {

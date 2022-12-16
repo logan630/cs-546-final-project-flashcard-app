@@ -1,19 +1,24 @@
 <main>
     <h1>{{deckName}}</h1>
+    <p>Create a new card:</p> <br>
     <div id="error" class="error" hidden>{{errorMessage}}</div>
-    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/public/css/style.css"> <!--This is needed because this page can't inherit the css link from main for some reason-->
     <form action="/protected/decks" method="POST" id="create-card-form" class="create-card-form">
-        <p>Create a new card:</p> <br>
         <label for="cardFrontInput">Front</label>
         <input id="cardFrontInput" type="text" name="cardFrontInput"> <br>
         <label for="cardBackInput">Back</label>
         <textarea id="cardBackInput" type="textarea" name="cardBackInput" rows="4" cols="30"></textarea> <br>
         <button type="submit">Add card</button>
-    </form>
-    
+    </form> <br>
     <ol id="card-list" class="card-list">
-        {{#each card}}
+        {{#each card}}                 <!--Same schema as submitted by the AJAX request. Not strictly necessary but looks consistent-->
             <li><a href="decks/{{this._id}}"> {{this.front}} : {{this.back}}</a></li>
         {{/each}}
     </ol>
+    <div id="error2" class="error2" hidden>{{errorMessage2}}</div>
+    <form action="/protected/decks/{{id}}" method="PATCH" id="edit-deck-form" class="edit-deck-form">
+        <label for="newDeckName">Enter new deck name</label> <br>
+        <input id="newDeckName" type="text" name="newDeckName"> <br>
+        <button type="submit">Change deck name</button>
+    </form>
 </main>

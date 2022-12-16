@@ -1,67 +1,74 @@
 //This file is for handling routes with decks, cards, and possibly folders
 const express=require('express')
-const { MongoGridFSChunkError } = require('mongodb')
+const { ObjectId } = require('mongodb')
 const router=express.Router()
 const path=require('path')
 const users=require('../data/users')
 const decks=require('../data/decks')
 const validation=require('../validation')
-const constructorMethod = require('.')
+const { off } = require('process')
 
 router      
     .route('/decks')
-    .get(async (req, res) => { // /decks get
+    .get(async (req, res) => { // /decks get route (when you go to the decks page)
         let userInfo=req.body;
-        if(!userInfo) throw "Error getting userInfo"
+        if(!userInfo){                  //if user info request fails 
+            res.sendStatus(400)
+            return
+        }
         let u=req.session.user.username
         let userId=undefined
         let yourDecks=undefined
-        try {
-            userId=await users.getUserIdFromName(u)
-            yourDecks=await decks.getUsersDecks(userId)
+        try {           
+            userId=await users.getUserIdFromName(u) //gets user id from that user's username
+            yourDecks=await decks.getUsersDecks(userId) //gets that user's decks
         }
-        catch(e){
+        catch(e){                       //if cannot get users decks
             console.log(e)
             if(!yourDecks){
-                res.status(500)
-                return;
+                res.sendStatus(500)
             }
+            return
         }     
-        if(req.session.user){
+        if(req.session.user){           //render decks if logged in
             res.render(path.resolve('views/decks.handlebars'),{title:u,deck:yourDecks,userName:u})
         }
     })
-    .post(async (req,res) => {  // /decks post
+    .post(async (req,res) => {  // /decks post route (when you create a deck)
         let deckInfo=req.body
-        if(!deckInfo){
-            res.status(500)
+        if(!deckInfo){                  //if deck info request fails
+            res.status(400)
             return
         }
-        u=req.session.user.username
-        const yourDecks=await decks.getAllDecks()
-        if(!yourDecks){
-            res.status(500)
-            return;
+        let u=req.session.user.username
+        let yourDecks=undefined
+        try{
+            yourDecks=await decks.getAllDecks()
+        }
+        catch(e){               //if getting all the decks fails
+            console.log(e)
+            res.sendStatus(500)
+            return
         }
         let newDeck=undefined;
         let error=undefined;
-        try {
+        try {                                       //req.body.name is the name of the deck
             newDeck = await decks.createDeck(u,req.body.name,"<subject here>", false)
         }
-        catch(e){
+        catch(e){           //if creating a deck fails, send handlebars page with thrown error
             console.log(e)
             error=e;
             res.json({
                 handlebars:path.resolve('views/decks.handlebars'),
                 title:u,
                 deck:yourDecks,
-                error:error
+                error:e.toString()
             })
             res.status(400)
             return
         }
         let newDeckId=newDeck.insertedId.toString()
-        if(req.session.user){
+        if(req.session.user){       //if it passes, create a deck with undefined error and a new deck id
             res.json({
                 handlebars:path.resolve('views/decks.handlebars'),
                 title:u,
@@ -75,73 +82,122 @@ router
 
 router      //just one deck
     .route('/decks/:id')
-    .get(async (req, res) => {
-        console.log("Get id: "+req.params.id)
-        let userInfo=req.body;
-        if(!userInfo) throw "Error getting userInfo"
-        const yourDecks=await decks.getAllDecks()
-        if(!yourDecks){
-            res.status(500)
-            return;
+    .get(async (req, res) => {      // /decks/:id /get route (when you go to that page)
+        //console.log("Get id: "+req.params.id)
+        let userInfo=req.body;          //same idea as above
+        if(!userInfo){
+            res.status(400)
+            return
         }
-        const deck=await decks.getDeckById(req.params.id)
-        console.log(deck.cards)
-        if(req.session.user){
-            res.render(path.resolve('views/singleDeck.handlebars'),{title:"deck",card:deck.cards})
-        }
-    })
-    .post(async (req,res) => {
-        let id=null;
-        let deck=null; 
-        let front=null;
-        let back=null;
-        try {
+        let deck=undefined
+        let id=undefined
+        try{
             id=validation.checkId(req.params.id)
             deck=await decks.getDeckById(id)
-
+        }
+        catch(e){               //if getting all the decks fails
+            console.log("\n\ncould not get deck\n\n")
+            console.log(e)
+            res.sendStatus(500)
+            return;
+        }
+        //console.log("deck cards",deck.cards)
+        if(req.session.user){       //if they are logged in, render the page for that deck
+            res.render(path.resolve('views/singleDeck.handlebars'),{title:deck.name,card:deck.cards,deckName:deck.name})
+        }
+    })
+    .post(async (req,res) => {      // /decks/:id /post route (when you create a new cards)
+        let id=undefined;
+        let deck=undefined; 
+        let front=undefined;
+        let back=undefined;
+        try {       //try to check id and get the decks
+            id=validation.checkId(req.params.id)
+            deck=await decks.getDeckById(id)
         }
         catch(e){
             console.log(e)
+            res.sendStatus(400)
+            return
         }
-        const yourDecks=await decks.getAllDecks()
-
-        try{
+        let card=undefined  //variable for the created card
+        try{            //validate front and back. Check creating card
             front=validation.checkCard(req.body.front,'front')
             back=validation.checkCard(req.body.back,'back')
-            await decks.createCard(front,back,deck.name)
+            card=await decks.createCard(front,back,deck.name)
         }
-        catch(e){
+        catch(e){           //if any of those fail, render the appropriate error
             console.log(e)
             res.json({
                 handlebars:path.resolve('views/singleDeck.handlebars'),
                 title:deck.name,
                 id:id,
-                front:front,
-                back:back,
-                deck:yourDecks,
-                card: {
-                    front:front,
-                    back:back
-                },
-                error:e
+                front: card ? front : undefined,            //if createCard return a valid card, send front and back back to ajax
+                back: card ? back : undefined,
+                deckName:deck.name,
+                error:e.toString()
             })
             return
         }
-        console.dir(deck)
-        if(req.session.user){
+        if(req.session.user){                   //if logged in, send correct data
             res.json({
                 handlebars:path.resolve('views/singleDeck.handlebars'),
                 title:deck.name,
                 id:id,
-                front:front,
+                front:front,                //sending valid data for front and back
                 back:back,
-                card: {
-                    front:front,
-                    back:back
-                },
+                deckName:deck.name,
+                error:undefined
+            })
+        }
+    })
+    .patch( async(req, res) => {            //updating deck name
+        let id=validation.checkId(req.params.id)
+        let newDeckName=req.body.name
+        if(!newDeckName){
+            res.sendStatus(400)
+            return e
+        }
+        try{    
+            newDeckName=validation.checkDeckName(newDeckName)
+            await decks.renameDeck(id,newDeckName)
+        }
+        catch(e){
+            console.log(e)
+            res.json({
+                handlebars:path.resolve('views/singleDeck.handlebars'),
+                title:newDeckName,
+                id:undefined,
+                deckName:newDeckName,
+                error:e.toString()
+            })
+            return
+        }
+        if(req.session.user){
+            res.json({
+                handlebars:path.resolve('views/singleDeck.handlebars'),
+                title:newDeckName,
+                id:id,
+                deckName:newDeckName,
                 error:undefined
             })
         }
     })
 
+/*router
+    .route('/decks/:id/card')
+    .get(async (req,res) => {         // /decks/:id/card get route      for getting a specific card
+        let cardInfo=req.body
+        if(!cardInfo){
+            res.sendStatus(500)
+            return
+        }
+        let deck=undefined
+        let id=undefined
+        try{
+            id=validation.checkId(req.params.id)
+            deck=await decks.getDeckById(id)
+        }
+    })
+*/
 module.exports = router;
