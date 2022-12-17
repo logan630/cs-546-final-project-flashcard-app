@@ -53,12 +53,14 @@ const removeDeck = async (id) => {      //deletes deck by id
     return deckName+" has been successfully deleted"
 }
 
-const renameDeck = async (id, newName, newPublicity) => {         //updates deck of id with name newName
+const renameDeck = async (id, newName, newSubject, newPublicity) => {         //updates deck of id with name newName
     id=validation.checkId(id)
     newName=validation.checkDeckName(newName)
+    newSubject=validation.checkSubject(newSubject)
     let deckCollection=await decks()
     let updatedDeck = {
-        name:newName
+        name:newName,
+        subject:newSubject
     }
     if(typeof newPublicity!='undefined'){
         updatedDeck.public=newPublicity
@@ -67,7 +69,7 @@ const renameDeck = async (id, newName, newPublicity) => {         //updates deck
         {_id:ObjectId(id)},
         {$set: updatedDeck}
     )
-    if(updatedInfo.modifiedCount===0) throw "Could not successfully rename deck"
+    if(updatedInfo.modifiedCount===0) throw "Could not successfully update deck"
     return await getDeckById(id);
 }
 
@@ -150,15 +152,14 @@ const createCard = async (front,back,deckName) => {
 
 const removeCard = async (id,frontToRemove) => {            //takes a deckId and the front of a card. Removes card with that front from deck with that id
     id=validation.checkId(id)
-    const deckFromId=getDeckById(id)
+    const deckFromId=await getDeckById(id)
     const cards=deckFromId.cards
-    let cards2=cards.filter(card => {
-        return card.front.toLowerCase()!==frontToRemove.toLowerCase()
-    })
+    let cards2=cards.filter((card) => {return card.front.toLowerCase()!==frontToRemove.toLowerCase()})
     const deckCollection=await decks()
     const updatedDeckCards={
         cards:cards2
     }
+
     const updatedInfo=await deckCollection.updateOne(
         {_id:ObjectId(id)},
         {$set: updatedDeckCards}

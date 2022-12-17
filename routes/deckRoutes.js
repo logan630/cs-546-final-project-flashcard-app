@@ -6,7 +6,6 @@ const path=require('path')
 const users=require('../data/users')
 const decks=require('../data/decks')
 const validation=require('../validation')
-const { off } = require('process')
 
 router      
     .route('/decks')
@@ -59,7 +58,7 @@ router
             console.log(e)
             error=e;
             res.json({
-                handlebars:path.resolve('views/decks.handlebars'),
+                //handlebars:path.resolve('views/decks.handlebars'),
                 title:u,
                 deck:yourDecks,
                 success:false,
@@ -71,7 +70,7 @@ router
         let newDeckId=newDeck.insertedId.toString()
         if(req.session.user){       //if it passes, create a deck with undefined error and a new deck id
             res.json({
-                handlebars:path.resolve('views/decks.handlebars'),
+                //handlebars:path.resolve('views/decks.handlebars'),
                 subject: deckInfo.subject,
                 title:u,
                 deck:yourDecks,
@@ -113,11 +112,12 @@ router      //just one deck
                 card:deck.cards, 
                 deckName:deck.name, 
                 subject: deck.subject,
-                id:id
+                id:id,
+                public:deck.public
             })
         }
     })
-    .post(async (req,res) => {      // /decks/:id /post route (when you create a new cards)
+    .post(async (req,res) => {      // /decks/:id /post route (when you create new cards)
         let id=undefined;
         let deck=undefined; 
         let front=undefined;
@@ -140,7 +140,7 @@ router      //just one deck
         catch(e){           //if any of those fail, render the appropriate error
             console.log(e)
             res.json({
-                handlebars:path.resolve('views/singleDeck.handlebars'),
+                //handlebars:path.resolve('views/singleDeck.handlebars'),
                 title:deck.name,
                 id:id,
                 front: card ? front : undefined,            //if createCard return a valid card, send front and back back to ajax
@@ -153,32 +153,39 @@ router      //just one deck
         }
         if(req.session.user){                   //if logged in, send correct data
             res.json({
-                handlebars:path.resolve('views/singleDeck.handlebars'),
+                //handlebars:path.resolve('views/singleDeck.handlebars'),
                 title:deck.name,
                 id:id,
                 front:front,                //sending valid data for front and back
                 back:back,
                 deckName:deck.name,
-                success:true,
+                success:true
                 
             })
         }
     })
-    .patch( async(req, res) => {            // /decks/:id patch route. updating deck name
+    .patch( async(req, res) => {            // /decks/:id patch route. updating deck name and subject
         let id=validation.checkId(req.params.id)
         let newDeckName=req.body.name
-        if(!newDeckName){
-            res.sendStatus(400)
-            return
+        let newDeckSubject=req.body.subject
+        let deckOldPublicity=undefined
+        try {
+            deckOldPublicity = await decks.getDeckById(id).public
         }
+        catch(e){
+            deckOldPublicity=false
+            console.log(e)
+        }
+        if(req.body.public!==true && req.body.public!==false) console.log("Incorrect value for publicity")
         try{    
             newDeckName=validation.checkDeckName(newDeckName)
-            await decks.renameDeck(id,newDeckName)
+            newDeckSubject=validation.checkSubject(newDeckSubject)
+            await decks.renameDeck(id,newDeckName,newDeckSubject,req.body.public)
         }
         catch(e){
             console.log(e)
             res.json({
-                handlebars:path.resolve('views/singleDeck.handlebars'),
+                //handlebars:path.resolve('views/singleDeck.handlebars'),
                 title:newDeckName,
                 id:undefined,
                 deckName:newDeckName,
@@ -187,12 +194,15 @@ router      //just one deck
             })
             return
         }
+
         if(req.session.user){
             res.json({
-                handlebars:path.resolve('views/singleDeck.handlebars'),
+                //handlebars:path.resolve('views/singleDeck.handlebars'),
                 title:newDeckName,
                 id:id,
                 deckName:newDeckName,
+                oldPublicity:deckOldPublicity,
+                public:req.body.public,
                 success:true,
                 error:undefined
             })
@@ -200,21 +210,20 @@ router      //just one deck
     })
     .delete( async(req, res) => {       // /decks/:id   delete route. Delete a deck
         let id=validation.checkId(req.params.id)
-        let result=undefined
         try{
-            result=await decks.removeDeck(id)
+            await decks.removeDeck(id)
         }
         catch(e){
             console.log(e)
             res.json({
-                handlebars:path.resolve('views/singleDeck.handlebars'),
+                //handlebars:path.resolve('views/singleDeck.handlebars'),
                 success:false,
                 error:e
             })
         }
         if(req.session.user){   
             res.json({
-                handlebars:path.resolve('views/decks.handlebars'),
+                //handlebars:path.resolve('views/decks.handlebars'),
                 success:true,
                 error:undefined
             })
@@ -311,6 +320,25 @@ router
             })
         }
     })
+    .delete(async(req,res) => {             //  /decks/:id/cards/:front     delete route    (delete a card)
+        let id=validation.checkId(req.params.id)
+        let front=validation.checkCard(req.params.front,'front')
+        try{
+            await decks.removeCard(id,front)
+        }
+        catch(e){
+            console.log(e)
+            res.json({
+                success:true,
+                error:e
+            })
+        }
+        if(req.session.user){
+            res.json({
+                success:true
+            })
+        }
+    })
 
 router
     .route('/decks/:id/flashcards')
@@ -323,7 +351,6 @@ router
             res.redirect('/decks/:id/flashcards/0/front', {cardNumber: 0})
     })
 
-
 router
     .route('/decks/:id/flashcards/:cardNumber/front')
     .get(async(req, res) => {
@@ -335,9 +362,6 @@ router
         //  if the "next card" button is clicked, increment the card number by 1 and go to '/decks/:id/flashcards/:cardNumber/front'
         //  Also has a "correct/incorrect" radio form, and a "done" checkbox
     })
-
-
-
 
 router
     .route('/decks/:id/flashcards/:cardNumber/back')

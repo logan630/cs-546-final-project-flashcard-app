@@ -42,12 +42,11 @@ const checkPassword = (password) => {
 
 function checkSubject(subject){
     if(!subject) throw new Error("You must supply a subject")
-    //console.log(subject);
     if(typeof subject!=='string') throw new Error('Subject is not a string')
     subject=subject.trim()
     if(subject.length>50) throw "Subject cannot be longer than 50 characters"
+    if(subject.length<2) throw "Subject cannot be shorter than 2 characters"
     if((/[/\\]/).test(subject)) throw "Subject name contains an illegal character"
-    if(subject.length===0) subject="(No subject)"
     return subject
 }
 

@@ -20,7 +20,15 @@
     <form action="/protected/decks/{{id}}" id="edit-deck-form" class="edit-deck-form">
         <label for="newDeckName">Enter new deck name</label> <br>
         <input id="newDeckName" type="text" name="newDeckName"> <br>
-        <button type="submit">Change deck name</button>
+        <label for="newDeckSubject">Enter new deck subject</label> <br>
+        <input id="newDeckSubject" type="text" name="newDeckSubject"> <br>
+        <label for="isDeckPublic">Is this deck public?</label>
+        {{#if public}}          <!-- if the deck is already public -->
+            <input id="isDeckPublic" type="checkbox" name="isDeckPublic" checked>
+        {{else}}
+            <input id="isDeckPublic" type="checkbox" name="isDeckPublic">
+        {{/if}}
+        <button type="submit">Update deck</button>
     </form>
     <nav>
         <div class="align-right">
