@@ -1,15 +1,16 @@
 <main>
-    <h1>{{cardFront}}</h1>
-    <h2>{{cardBack}}</h2>
-    <div id="error" class="error" hidden>{{errorMessage}}</div>
-    <h3>Edit card:</h3>
-    <form action="/protected/decks/{{id}}/card" method="POST" id="edit-card-form" class="edit-card-form">
+    <h1 id="card-front-h1" class="card-front-h1">{{cardFront}}</h1>
+    <h2 id="card-back-h2" class="card-back-h2">{{cardBack}}</h2>
+    <div id="error3" class="error3" hidden>{{errorMessage}}</div>
+    <p>Edit card:</p>
+    <form action="/protected/decks/{{id}}/cards/{{cardFront}}" id="edit-card-form" class="edit-card-form">
         <label for="newCardFrontInput">Front</label>
         <input id="newCardFrontInput" type="text" name="newCardFrontInput"> <br>
         <label for="newCardBackInput">Back</label>
         <textarea id="newCardBackInput" type="textarea" name="newCardBackInput" rows="4" cols="30"></textarea> <br>
         <button type="submit">Edit this card</button>
     </form>
-    <a href=""></a>
-    
+    <nav>
+        <a href="/protected/decks/{{id}}">Back to {{deckName}}</a>
+    </nav>
 </main>

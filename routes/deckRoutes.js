@@ -106,7 +106,15 @@ router      //just one deck
         }
         //console.log("deck cards",deck.cards)
         if(req.session.user){       //if they are logged in, render the page for that deck
-            res.render(path.resolve('views/singleDeck.handlebars'),{title:deck.name, card:deck.cards, deckName:deck.name, subject: deck.subject, id: id})
+            //console.log(deck.cards)
+            res.render(path.resolve('views/singleDeck.handlebars'),
+            {
+                title:deck.name, 
+                card:deck.cards, 
+                deckName:deck.name, 
+                subject: deck.subject,
+                id:id
+            })
         }
     })
     .post(async (req,res) => {      // /decks/:id /post route (when you create a new cards)
@@ -217,10 +225,9 @@ router      //just one deck
         }
     })  
 
-
-/*router
-    .route('/decks/:id/card')
-    .get(async (req,res) => {         // /decks/:id/card get route      for getting a specific card
+router
+    .route('/decks/:id/cards/:front')
+    .get(async (req,res) => {         // /decks/:id/cards/:front    get route      for getting a specific card
         let cardInfo=req.body
         if(!cardInfo){
             res.sendStatus(500)
@@ -232,9 +239,78 @@ router      //just one deck
             id=validation.checkId(req.params.id)
             deck=await decks.getDeckById(id)
         }
+        catch(e){
+            console.log(e)
+        }
+        let oldFront=req.params.front
+        let back=await decks.getCardBack(id,oldFront)
+        try{
+            oldFront=validation.checkCard(oldFront,'front')
+        }
+        catch(e){
+            console.log(e)
+                res.json({
+                    handlebars:path.resolve('views/card.handlebars'),
+                    title:oldFront,
+                    id:id,
+                    cardFront:oldFront,
+                    cardBack:back,
+                    errorMessage:e.toString(),
+                    success:false
+                })
+                return
+            }
+        if(req.session.user){
+            res.render(path.resolve('views/card.handlebars'),{cardFront:oldFront,cardBack:back,id:id,title:oldFront,deckName:deck.name})
+        }
     })
-*/
-
+    .patch(async (req,res) => {             // /decks/:id/cards/:front      patch route     (changing a card front and back)
+        let id=validation.checkId(req.params.id)
+        let front=req.body.front
+        let back=req.body.back
+        let deck=undefined
+        let oldFront=req.params.front
+        try{
+            front=validation.checkCard(front,'front')
+            oldFront=validation.checkCard(oldFront,'front')
+            back=validation.checkCard(back,'back')
+            deck=await decks.getDeckById(id)
+        }
+        catch(e){
+            console.log(e)
+                res.json({
+                    handlebars:path.resolve('views/card.handlebars'),
+                    title:front,
+                    id:id,
+                    cardFront:front,
+                    cardBack:back,
+                    errorMessage:e.toString(),
+                    success:false
+                    //deckName:deck.name
+                })
+                return
+            }
+        let a=undefined
+        try{
+            a=await decks.updateCard(id,oldFront,front,back)
+        }
+        catch(e){
+            console.log(e)
+        }
+        if(req.session.user){
+            //console.log(front,back)
+            res.json({
+                handlebars:path.resolve('views/card.handlebars'),
+                title:front,
+                id:id,
+                cardFront:front,
+                cardBack:back,
+                success:true,
+                error:undefined,
+                deckName:deck.name
+            })
+        }
+    })
 
 router
     .route('/decks/:id/flashcards')
@@ -246,7 +322,6 @@ router
         else
             res.redirect('/decks/:id/flashcards/0/front', {cardNumber: 0})
     })
-
 
 
 router
