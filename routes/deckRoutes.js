@@ -225,16 +225,9 @@ router      //just one deck
         }
     })  
 
-<<<<<<< HEAD
 router
     .route('/decks/:id/cards/:front')
     .get(async (req,res) => {         // /decks/:id/cards/:front    get route      for getting a specific card
-=======
-
-/*router
-    .route('/decks/:id/card')
-    .get(async (req,res) => {         // /decks/:id/card get route      for getting a specific card
->>>>>>> 832be561e71b37e66a3495f56673491785fbea1e
         let cardInfo=req.body
         if(!cardInfo){
             res.sendStatus(500)
@@ -318,12 +311,6 @@ router
             })
         }
     })
-<<<<<<< HEAD
-
-module.exports = router;
-=======
-*/
-
 
 router
     .route('/decks/:id/flashcards')
@@ -335,7 +322,6 @@ router
         else
             res.redirect('/decks/:id/flashcards/0/front', {cardNumber: 0})
     })
-
 
 
 router
@@ -367,4 +353,3 @@ router
 
 
 module.exports = router;
->>>>>>> 832be561e71b37e66a3495f56673491785fbea1e
