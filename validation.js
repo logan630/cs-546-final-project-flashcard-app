@@ -42,7 +42,7 @@ const checkPassword = (password) => {
 
 function checkSubject(subject){
     if(!subject) throw new Error("You must supply a subject")
-    console.log(subject);
+    //console.log(subject);
     if(typeof subject!=='string') throw new Error('Subject is not a string')
     subject=subject.trim()
     if(subject.length>50) throw "Subject cannot be longer than 50 characters"
@@ -68,6 +68,7 @@ function checkCard(contents,forb){          //it's forbin time
     let maxLen=0
     if(forb==='front') maxLen=frontLenMax
     else if(forb==='back') maxLen=backLenMax
+    if((/[/\\]/).test(contents)) throw `${forb} contains an illegal character`
     if(contents.length>maxLen) throw `Card ${forb} contents is longer than ${maxLen}`
     return contents
 }

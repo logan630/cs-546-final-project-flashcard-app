@@ -9,6 +9,12 @@
     let cardFrontInput=$('#cardFrontInput')
     let cardBackInput=$('#cardBackInput')
     let cardList=$('#card-list')
+    //editing cards
+    let editCardForm=$('#edit-card-form')
+    let newCardFrontInput=$('#newCardFrontInput')
+    let newCardBackInput=$('#newCardBackInput')
+    let newCardFront_h1=$('#card-front-h1')
+    let newCardBack_h2=$('#card-back-h2')
     //editing deck names
     let editDeckForm=$('#edit-deck-form')
     let newDeckNameInput=$('#newDeckName')
@@ -78,6 +84,38 @@
             })
         }
     })
+    //for editing a card
+    editCardForm.submit(function (event) {
+        event.preventDefault();
+        let cardNewFront=newCardFrontInput.val()
+        let cardNewBack=newCardBackInput.val()
+        if(cardNewFront && cardNewBack){        //if new inputs were specified
+            let url=window.location.href.substring(window.location.href.indexOf("/protected"));     //gets complete url
+            let requestConfig={
+                method:"PATCH",
+                url:url,
+                contentType:"application/json",
+                data: JSON.stringify({front:cardNewFront,back:cardNewBack})
+            }
+            $.ajax(requestConfig).then(function (responseMessage) {
+                let newFront=responseMessage.cardFront
+                let newBack=responseMessage.cardBack
+                let errorDiv=document.getElementById('error3')
+                if(responseMessage.success){
+                    errorDiv.hidden=true
+                    newCardFront_h1.replaceWith(`<h1 id="card-front-h1" class="card-front-h1">${newFront}</h1>`)
+                    newCardBack_h2.replaceWith(`<h2 id="card-back-h2" class="card-back-h2">${newBack}</h2>`)
+                }
+                else{
+                    errorDiv.hidden=false
+                    errorDiv.innerHTML=responseMessage.errorMessage     //error message thrown from routes (checking) is used here
+                    frmLabel=className='error3'
+                    newCardFrontInput.focus();
+                }
+                $('#edit-card-form').trigger('reset')
+            })
+        }
+    })
     //for creating a new deck
     createDeckForm.submit(function (event) {
         event.preventDefault();
@@ -111,7 +149,7 @@
         event.preventDefault();
         let deckNewName=newDeckNameInput.val()          //gets data from the form where the user submits the new deck name
         if(deckNewName){            //if new deck name was accepted
-            let url=window.location.href.substring(window.location.href.indexOf("/protected"));     //gets deck id
+            let url=window.location.href.substring(window.location.href.indexOf("/protected"));     //gets deck url
             let requestConfig={
                 method: "PATCH",
                 url: url,
@@ -122,7 +160,7 @@
                 let id=responseMessage.id
                 if(responseMessage.success){
                     errorDiv2.hidden=true
-                    deckList.innerHTML=`<li> <a href="decks/${id}">${$('#newDeckName').val()}</a> </li>`
+                    deckList.innerHTML=`<li> <a href="decks/${id}">${deckNewName}</a> </li>`
                     deckName_h1.replaceWith(`<h1 id="deckName" class="deckName">${deckNewName}</h1>`)   //updates deck name at top of page
                 }
                 else{

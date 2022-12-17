@@ -32,24 +32,53 @@ app.use('/protected', (req, res, next) => {     //redirect to home if not authen
       next();
     }
   });
+app.use('/protected/decks/:id/cards/:front', async (req,res,next) => {
+  if(!req.session.user){
+    res.redirect('/')
+  }
+  let id=req.originalUrl.substring(req.originalUrl.indexOf('/decks/')+7)
+  id=id.substring(0,id.indexOf('/cards'))
+  let doesOwn=undefined
+  try{
+    doesOwn=await decks.doesUserOwnThisDeck(req.session.user.username,id)
+  }
+  catch(e){
+    console.log("Checking ownership threw an error")
+    return res.redirect('/protected/decks')
+  }
+  if(!doesOwn){
+    console.log("You do not own that deck!!!")
+    res.redirect('/protected/decks')
+  }
+  else{
+    res.ignore=true     //if they own the deck, we can ignore the next middleware.
+    next()
+  }
+})
 app.use('/protected/decks/:id', async (req,res,next) => {     //if the id in the url does not belong to the user's decks (the deck was made by another user, or the deck is invalid)
   if (!req.session.user) {
     return res.redirect('/')
   }
   let id=req.originalUrl.substring(req.originalUrl.indexOf('/decks/')+7)
   let doesOwn=undefined
-  try{
-    doesOwn=await decks.doesUserOwnThisDeck(req.session.user.username,id)
+  if(!res.ignore) {   
+    try{
+      doesOwn=await decks.doesUserOwnThisDeck(req.session.user.username,id)
+    }
+    catch(e){
+      console.log("checking ownership failed")
+      return res.redirect('/protected/decks')
+    }
+    if(!doesOwn){
+      console.log("You do not own that deck")
+      res.redirect('/protected/decks')
+    }
+    else {
+      next();
+    }
   }
-  catch(e){
-    return res.redirect('/protected/decks')
-  }
-  if(!doesOwn){
-    console.log("You do not own that deck")
-    res.redirect('/protected/decks')
-  }
-  else {
-    next();
+  else{
+    next()
   }
 })
 app.use('/login', (req, res, next) => {

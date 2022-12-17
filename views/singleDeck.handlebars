@@ -3,7 +3,6 @@
     <h2 id="deckSubject" class="deckSubject">{{subject}}</h2>
     <p>Create a new card:</p> <br>
     <div id="error" class="error" hidden>{{errorMessage}}</div>
-    <link rel="stylesheet" href="/public/css/style.css"> <!--This is needed because this page can't inherit the css link from main for some reason-->
     <form action="/protected/decks" method="POST" id="create-card-form" class="create-card-form">
         <label for="cardFrontInput">Front</label>
         <input id="cardFrontInput" type="text" name="cardFrontInput"><br>
@@ -13,8 +12,8 @@
     </form> <br>
     <ol id="card-list" class="card-list">
         <!--Same schema as submitted by the AJAX request. Not strictly necessary but looks consistent-->
-        {{#each card}}                 
-            <li><a href="decks/{{this._id}}"> {{this.front}} : {{this.back}}</a></li>
+        {{#each card}}            
+            <li><a href="/protected/decks/{{../id}}/cards/{{this.front}}"> {{this.front}} : {{this.back}}</a></li>
         {{/each}}
     </ol>
     <div id="error2" class="error2" hidden>{{errorMessage2}}</div>
