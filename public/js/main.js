@@ -55,7 +55,8 @@
         let newCardFront=cardFrontInput.val();
         let newCardBack=cardBackInput.val();
         if(newCardFront && newCardBack) {           //if the card front and back both have data (not empty)
-            let url=window.location.href.substring(window.location.href.indexOf("/protected"));     //gets deck id
+            let url=window.location.href.substring(window.location.href.indexOf("/protected/decks"));     //gets deck id
+            console.log(url)
             let requestConfig = {       //sets up request data and type to send
                 method: "POST",
                 url: url,
@@ -70,7 +71,7 @@
                 //at this point, if the input is valid, the card was already added to the card list. This will just show it in the list without a refresh
                 if(responseMessage.success) {         //if valid front and back data, add it to the list 
                     errorDiv.hidden=true
-                    const listItem = `<li> <a href="decks/${id}">${front} : ${back}</a> </li>`
+                    const listItem = `<li> <a href="${url}/cards/${front}">${front} : ${back}</a> </li>`
                     cardList.append(listItem)
                 }
                 else{           //if the card was not added (input functions threw), show the error, and focus on the form again
