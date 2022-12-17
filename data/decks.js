@@ -171,28 +171,51 @@ const updateCard = async (id,oldFront,newFront,newBack) => {   //takes a deck id
     id=validation.checkId(id)
     newFront=validation.checkCard(newFront,'front')
     newBack=validation.checkCard(newBack,'back')
-    const deckCollection=await decks()
     const updatedCard = {
         front:newFront,
         back:newBack
     }
-    const deckToUpdate=getDeckById(id)
+    const deckCollection=await decks()
+    const deckToUpdate=await getDeckById(id)
     let found=false
-    for(card of deckToUpdate.cards){            //searches for the card with that front
-        if(card[front].toLowerCase()===oldFront.toLowerCase()){
-            //card[front]=newFront
+    deckCards=deckToUpdate.cards
+    let i=0
+    for(i in deckCards){            //searches for the card with that front
+        if(deckCards[i].front.toLowerCase()===oldFront.toLowerCase()){
             found=true
             break;
         }
     }
+    deckCards[i]=updatedCard
     if(!found) throw `Cannot find card with front ${oldFront}`
+    const updatedDeck={
+        cards:deckCards
+    }
     const updatedInfo=await deckCollection.updateOne(
         {_id: ObjectId(id)},
-        {$set: updatedCard}
+        {$set: updatedDeck}
     )
     if(updatedInfo.modifiedCount===0) throw "Could not successfully update card"
     return await getDeckById(id);
 
+}
+
+const getCardBack = async (id,front) => {       //takes a deck id and the front of a card. Returns the back of a card
+    id=validation.checkId(id)
+    front=validation.checkCard(front,'front')
+    let deck=undefined;
+    try{
+        deck=await getDeckById(id)
+    }
+    catch(e){
+        console.log(e)
+    }
+    for(item of deck.cards){
+        if(item.front.toLowerCase()===front.toLowerCase()){
+            return item.back
+        }
+    }
+    //throw `Card named ${front} not found`
 }
 
 module.exports = {
@@ -205,5 +228,6 @@ module.exports = {
     removeDeck,
     createCard,
     removeCard,
-    updateCard
+    updateCard,
+    getCardBack
 }

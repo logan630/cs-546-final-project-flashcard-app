@@ -225,9 +225,16 @@ router      //just one deck
         }
     })  
 
+<<<<<<< HEAD
 router
     .route('/decks/:id/cards/:front')
     .get(async (req,res) => {         // /decks/:id/cards/:front    get route      for getting a specific card
+=======
+
+/*router
+    .route('/decks/:id/card')
+    .get(async (req,res) => {         // /decks/:id/card get route      for getting a specific card
+>>>>>>> 832be561e71b37e66a3495f56673491785fbea1e
         let cardInfo=req.body
         if(!cardInfo){
             res.sendStatus(500)
@@ -311,5 +318,53 @@ router
             })
         }
     })
+<<<<<<< HEAD
 
 module.exports = router;
+=======
+*/
+
+
+router
+    .route('/decks/:id/flashcards')
+    .get(async(req, res) => {
+        if(!req.session.user)   //  if the user is not logged in
+            res.redirect("/")
+        else if(req.params.cards.length === 0)   //  if the deck is empty
+            res.render(path.resolve('views/flashcardsEmpty.handlebars'))
+        else
+            res.redirect('/decks/:id/flashcards/0/front', {cardNumber: 0})
+    })
+
+
+
+router
+    .route('/decks/:id/flashcards/:cardNumber/front')
+    .get(async(req, res) => {
+        res.render(path.resolve('views/flashcard_front.handlebars'))
+        //  if this is the first card of the deck, then hide the "previous card" button
+        //  if this is the last card of the deck, then hide the "next card" button
+        //  if the "flip to back" button is clicked, then go to '/decks/:id/flashcards/:cardNumber/back'
+        //  if the "previous card" button is clicked, decrement the card number by 1 and go to '/decks/:id/flashcards/:cardNumber/front'
+        //  if the "next card" button is clicked, increment the card number by 1 and go to '/decks/:id/flashcards/:cardNumber/front'
+        //  Also has a "correct/incorrect" radio form, and a "done" checkbox
+    })
+
+
+
+
+router
+    .route('/decks/:id/flashcards/:cardNumber/back')
+    .get(async(req, res) => {
+        res.render(path.resolve('views/flashcard_back.handlebars'))
+        //  if this is the first card of the deck, then hide the "previous card" button
+        //  if this is the last card of the deck, then hide the "next card" button
+        //  if the "flip to front" button is clicked, then go to '/decks/:id/flashcards/:cardNumber/front'
+        //  if the "previous card" button is clicked, decrement the card number by 1 and go to '/decks/:id/flashcards/:cardNumber/front'
+        //  if the "next card" button is clicked, increment the card number by 1 and go to '/decks/:id/flashcards/:cardNumber/front'
+        //  Also has a "correct/incorrect" radio form, and a "done" checkbox
+    })
+
+
+module.exports = router;
+>>>>>>> 832be561e71b37e66a3495f56673491785fbea1e
