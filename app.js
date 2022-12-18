@@ -36,8 +36,7 @@ app.use('/protected/decks/:id/cards/:front', async (req,res,next) => {
   if(!req.session.user){
     res.redirect('/')
   }
-  let id=req.originalUrl.substring(req.originalUrl.indexOf('/decks/')+7)
-  id=id.substring(0,id.indexOf('/cards'))
+  let id=req.params.id
   let doesOwn=undefined
   try{
     doesOwn=await decks.doesUserOwnThisDeck(req.session.user.username,id)
@@ -59,7 +58,7 @@ app.use('/protected/decks/:id', async (req,res,next) => {     //if the id in the
   if (!req.session.user) {
     return res.redirect('/')
   }
-  let id=req.originalUrl.substring(req.originalUrl.indexOf('/decks/')+7)
+  let id=req.params.id
   let doesOwn=undefined
   if(!res.ignore) {   
     try{

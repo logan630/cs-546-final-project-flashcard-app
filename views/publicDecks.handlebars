@@ -1,0 +1,13 @@
+<main>
+    <h1>Browsing public decks</h1>
+    <ol>
+    {{#each publicDeck}}
+        <li><a href="/protected/publicdecks/{{this._id}}">{{this.name}} - Subject: {{this.subject}}</a></li>
+    {{/each}}
+    </ol>
+    <footer>
+        <nav>
+            <a href="/protected/decks">Go to your decks</a>
+        </nav>
+    </footer>
+</main>

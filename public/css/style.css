@@ -62,8 +62,9 @@ p {
     text-align:center;
 }
 header {
-    color: var(--color-sky-blue);
-    font-size: 40px;
+    color: rgb(255,255,255);
+    font-size: 25px;
+    margin-left: 15px;
 }
 body {
     background-color: var(--bg-gray);
@@ -155,7 +156,12 @@ footer {
     left: 0;
     margin-bottom: 13px;
 }
-
+a {
+    color: rgb(255,255,255);
+}
+a :hover {
+    color: rgb(255,255,100);
+}
 nav {
     margin-top: 12px;
 }
