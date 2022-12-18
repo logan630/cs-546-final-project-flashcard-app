@@ -239,6 +239,26 @@ const getCardBack = async (id,front) => {       //takes a deck id and the front 
     throw `Card named ${front} not found`
 }
 
+
+//  Performs a Durstenfeld shuffle on a deep copy of an array, then returns the shuffled copied array.
+//  Source: https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+function shuffleArray(array) {
+    if(!(Array.isArray(array)))
+        throw "shuffleArray: parameter \"array\" must be of type array, obviously"
+        
+    let A = []
+    for(let i in array)
+        A.push(array[i])
+
+    for(let i = A.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [A[i], A[j]] = [A[j], A[i]];
+    }
+
+    return A
+}
+
+
 module.exports = {
     createDeck,
     insertThisDeck,
@@ -251,5 +271,6 @@ module.exports = {
     createCard,
     removeCard,
     updateCard,
-    getCardBack
+    getCardBack,
+    shuffleArray
 }

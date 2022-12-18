@@ -409,7 +409,7 @@ router
         if(!req.session.user)   //  if the user is not logged in, redirect to the homepage
             res.redirect("/")
         else if(deck.cards.length === 0)   //  if the deck has no cards, display a page that tells the user this
-            res.render(path.resolve('views/flashcardsEmpty.handlebars'), {id: id})
+            res.render(path.resolve('views/flashcards_empty.handlebars'), {id: id})
         else    //  an authenticated user will initially see the front of the first flashcard of a non-empty deck
             res.redirect(`/protected/decks/${id}/flashcards/${req.params.cardNumber = 0}/front`)
     })
@@ -444,9 +444,9 @@ router
             res.redirect("/")
         else {  //  otherwise, display the back of the cardNumber-th card
             res.render(path.resolve('views/flashcard_front.handlebars'),
-                       {id:         id,
-                        deckName:   deck.name,
-                        frontText:  deck.cards[cardNumber].front,
+                       {id        : id,
+                        deckName  : deck.name,
+                        frontText : deck.cards[cardNumber].front,
                         cardNumber: cardNumber
                        }
                       )
@@ -483,14 +483,14 @@ router
             res.redirect("/")
         else {  //  otherwise, display the back of the cardNumber-th card
             res.render(path.resolve('views/flashcard_back.handlebars'),
-                       {id:                 id,
-                        deckName:           deck.name,
-                        backText:           deck.cards[cardNumber].back,
-                        cardNumber:         cardNumber,
+                       {id                : id,
+                        deckName          : deck.name,
+                        backText          : deck.cards[cardNumber].back,
+                        cardNumber        : cardNumber,
                         previousCardNumber: cardNumber - 1,
-                        nextCardNumber:     +cardNumber + 1,
-                        isFirstCard:        (+cardNumber === 0),
-                        isLastCard:         (+cardNumber === deck.cards.length - 1)
+                        nextCardNumber    : +cardNumber + 1,
+                        isFirstCard       : (+cardNumber === 0),
+                        isLastCard        : (+cardNumber === deck.cards.length - 1)
                        }
                       )
         }
@@ -589,4 +589,92 @@ router
         }
         res.redirect('/protected/publicdecks')
     })
+
+    let shuffledCards = undefined
+
+    router
+        .route('/decks/:id/matchingGame')
+        .get(async(req, res) => {
+            //  First check that the id is valid, and that there actually is a deck with that id
+            let id   = undefined
+            let deck = undefined
+            try {
+                id   = validation.checkId(req.params.id)
+                deck = await decks.getDeckById(id)
+            }
+            catch(errorMessage) {
+                console.log("\n\ncould not get deck for matching game\n\n")
+                console.log(e)
+                res.sendStatus(500)
+                return;
+            }
+
+            if(!req.session.user)   //  if the user is not logged in, redirect to the homepage
+                res.redirect("/")
+            else if(deck.cards.length === 0)   //  if the deck has no cards, display a page that tells the user this
+                res.render(path.resolve('views/matchingGame_empty.handlebars'), {id: id})
+            else {  //  an authenticated user will play the matching game on a non-empty deck
+                shuffledCards = decks.shuffleArray(deck.cards)
+                res.render(path.resolve('views/matchingGame.handlebars'),
+                                        {id            : id,
+                                         deckName      : deck.name,
+                                         sortedCards   : deck.cards,
+                                         shuffledCards : shuffledCards,
+                                         userInputError: true
+                                        }
+                                       )
+            }
+
+        })
+        .post(async(req, res) => {
+            //  First check that the id is valid, and that there actually is a deck with that id
+            let id   = undefined
+            let deck = undefined
+            try {
+                id   = validation.checkId(req.params.id)
+                deck = await decks.getDeckById(id)
+            }
+            catch(errorMessage) {
+                console.log("\n\ncould not get deck for matching game\n\n")
+                console.log(e)
+                res.sendStatus(500)
+                return;
+            }
+
+            const userInput = req.body.guessMatches
+            let error   = true
+            let correct = false
+
+            try {
+                validation.checkMatchingGameUserInput(userInput)
+                if(Math.ceil((tokens = userInput.replace(/,/g, " , ").trim().split(/\s+/)).length / 2) < deck.cards.length)
+                    throw "Not enough cards entered, try again."
+                else if(Math.ceil(tokens.length / 2) > deck.cards.length)
+                    throw "Too many cards entered, try again."
+                else {
+                    for(let i in deck.cards) {
+                        if((deck.cards[i]).back !== (shuffledCards[tokens[2 * i] - 1]).back)
+                            throw "Incorrect order, try again."
+                    }
+
+                    error   = false
+                    correct = true
+                    throw "Correct!"
+                }
+            }
+            catch(message) {
+                res.render(path.resolve('views/matchingGame.handlebars'),
+                            {id            : id,
+                             deckName      : deck.name,
+                             sortedCards   : deck.cards,
+                             shuffledCards : shuffledCards,
+                             userInputError: error,
+                             success       : correct,
+                             message       : message,
+                             userInput     : userInput
+                            }
+                          )
+            }
+        })
+
 module.exports = router;

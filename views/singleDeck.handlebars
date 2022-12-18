@@ -1,5 +1,5 @@
 <main>
-    <header>Created on: {{dateCreated}}</header>
+    <header><br>Created on: {{dateCreated}}</header>
     <h1 id="deckName" class="deckName">{{deckName}}</h1>
     <h2 id="deckSubject" class="deckSubject">{{subject}}</h2>
     <p>Create a new card:</p> <br>
@@ -31,8 +31,9 @@
         {{/if}}
         <button type="submit">Update deck</button>
     </form>
+    <br>
     <form action="/protected/decks/{{id}}/send" method="POST">
-        <label for="sendToAnotherUser">Send this deck to another user</label>
+        <label for="sendToAnotherUser">Send this deck to another user (by their name)</label>
         <input id="sendToAnotherUser" type="text" name="sendToAnotherUser">
         <button type="submit">Send</button>
     </form>
@@ -42,6 +43,7 @@
         </div>
         
         <a href="/protected/decks">Back to your decks</a>
-        <a href="/protected/decks/{{id}}/flashcards">Practice this deck with flashcards</a>
+        <a href="/protected/decks/{{id}}/flashcards">Practice this deck with flashcards!</a>
+        <a href="/protected/decks/{{id}}/matchingGame">Practice this deck with our matching game!</a>
     </nav>
 </main>

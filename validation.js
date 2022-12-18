@@ -70,11 +70,35 @@ function checkCard(contents,forb){          //it's forbin time
     return contents
 }
 
+//  Checks that a string is of the form "a, b, c, d, ..." (comma-separated positive integers)
+//  and contains non-whitespace characters. Leading 0's in numbers are ignored.
+function checkMatchingGameUserInput(s) {
+    if(!s)
+        throw "Input must not be empty"
+    else if(typeof(s) !== "string")
+        throw "Input must be a string."
+    else if(s.trim() === "")
+        "Input must contain non-whitespace characters."
+    else {
+        for(let i in (tokens = s.replace(/,/g, " , ").trim().split(/\s+/))) {   //  put spaces around all commas in the string, then split that on whitespace
+            if((i % 2) === 0) {
+                if(!(tokens[i].match(/^\d+$/))  ||  tokens[i].match(/^0+$/))    //  If the current token does not only contain 0-9, or only contains 0
+                    throw `Invalid input: Expected a positive integer, but received "${tokens[i]}".`
+            }
+            else if(tokens[i] !== ",")
+                throw `Invalid input: Expected a ",", but received "${tokens[i]}".`
+        }
+
+        return s;
+    }
+}
+
 module.exports = {
     checkUsername,
     checkPassword,
     checkDeckName,
     checkSubject,
     checkId,
-    checkCard
+    checkCard,
+    checkMatchingGameUserInput
 }
