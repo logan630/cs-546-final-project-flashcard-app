@@ -1,4 +1,14 @@
 <main>
-    <h1 id="deckName" class="deckName">{{deckName}}</h1>
-    <div class="cardBox">{{front}}<div>
+    <h1 id="deckName" class="deckName">{{deckName}}: Flashcards</h1>
+
+    <div><span class="flashcard-box"> {{frontText}} </span></div>
+
+    <br>
+    <div>
+        <a href="/protected/decks/{{id}}/flashcards/{{cardNumber}}/back">Flip to back</a>
+    </div>
+
+    <footer><nav>
+        <a href="/protected/decks/{{id}}">Back to this deck</a>
+    </nav></footer>
 </main>

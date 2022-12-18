@@ -59,7 +59,7 @@ app.use('/protected/decks/:id', async (req,res,next) => {     //if the id in the
   if (!req.session.user) {
     return res.redirect('/')
   }
-  let id=req.originalUrl.substring(req.originalUrl.indexOf('/decks/')+7)
+  let id=req.params.id
   let doesOwn=undefined
   if(!res.ignore) {   
     try{

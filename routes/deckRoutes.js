@@ -340,39 +340,114 @@ router
         }
     })
 
+
+
+
 router
     .route('/decks/:id/flashcards')
     .get(async(req, res) => {
-        if(!req.session.user)   //  if the user is not logged in
+        //  First check that the id is valid, and that there actually is a deck with that id
+        let id   = undefined
+        let deck = undefined
+        try {
+            id   = validation.checkId(req.params.id)
+            deck = await decks.getDeckById(id)
+        }
+        catch(errorMessage) {
+            console.log("\n\ncould not get deck for flashcards\n\n")
+            console.log(e)
+            res.sendStatus(500)
+            return;
+        }
+
+        if(!req.session.user)   //  if the user is not logged in, redirect to the homepage
             res.redirect("/")
-        else if(req.params.cards.length === 0)   //  if the deck is empty
-            res.render(path.resolve('views/flashcardsEmpty.handlebars'))
-        else
-            res.redirect('/decks/:id/flashcards/0/front', {cardNumber: 0})
+        else if(deck.cards.length === 0)   //  if the deck has no cards, display a page that tells the user this
+            res.render(path.resolve('views/flashcardsEmpty.handlebars'), {id: id})
+        else    //  an authenticated user will initially see the front of the first flashcard of a non-empty deck
+            res.redirect(`/protected/decks/${id}/flashcards/${req.params.cardNumber = 0}/front`)
     })
+
+
 
 router
     .route('/decks/:id/flashcards/:cardNumber/front')
     .get(async(req, res) => {
-        res.render(path.resolve('views/flashcard_front.handlebars'))
-        //  if this is the first card of the deck, then hide the "previous card" button
-        //  if this is the last card of the deck, then hide the "next card" button
-        //  if the "flip to back" button is clicked, then go to '/decks/:id/flashcards/:cardNumber/back'
-        //  if the "previous card" button is clicked, decrement the card number by 1 and go to '/decks/:id/flashcards/:cardNumber/front'
-        //  if the "next card" button is clicked, increment the card number by 1 and go to '/decks/:id/flashcards/:cardNumber/front'
-        //  Also has a "correct/incorrect" radio form, and a "done" checkbox
+        //  First check that the id is valid, and that there actually is a deck with that id
+        let id   = undefined
+        let deck = undefined
+        try {
+            id   = validation.checkId(req.params.id)
+            deck = await decks.getDeckById(id)
+        }
+        catch(errorMessage) {
+            console.log("\n\ncould not get deck for flashcards\n\n")
+            console.log(e)
+            res.sendStatus(500)
+            return;
+        }
+
+        let cardNumber = req.params.cardNumber
+
+        if(cardNumber < 0 || cardNumber % 1 !== 0 || cardNumber.toString().includes(".") || cardNumber >= deck.cards.length) {
+            console.log("\n\ninvalid flashcard number\n\n")
+            res.json({errorMessage: "Invalid flashcard number"})
+            return;
+        }
+        else if(!req.session.user)   //  if the user is not logged in, redirect to the homepage
+            res.redirect("/")
+        else {  //  otherwise, display the back of the cardNumber-th card
+            res.render(path.resolve('views/flashcard_front.handlebars'),
+                       {id:         id,
+                        deckName:   deck.name,
+                        frontText:  deck.cards[cardNumber].front,
+                        cardNumber: cardNumber
+                       }
+                      )
+        }
     })
+
+
 
 router
     .route('/decks/:id/flashcards/:cardNumber/back')
     .get(async(req, res) => {
-        res.render(path.resolve('views/flashcard_back.handlebars'))
-        //  if this is the first card of the deck, then hide the "previous card" button
-        //  if this is the last card of the deck, then hide the "next card" button
-        //  if the "flip to front" button is clicked, then go to '/decks/:id/flashcards/:cardNumber/front'
-        //  if the "previous card" button is clicked, decrement the card number by 1 and go to '/decks/:id/flashcards/:cardNumber/front'
-        //  if the "next card" button is clicked, increment the card number by 1 and go to '/decks/:id/flashcards/:cardNumber/front'
-        //  Also has a "correct/incorrect" radio form, and a "done" checkbox
+        //  First check that the id is valid, and that there actually is a deck with that id
+        let id   = undefined
+        let deck = undefined
+        try {
+            id   = validation.checkId(req.params.id)
+            deck = await decks.getDeckById(id)
+        }
+        catch(errorMessage) {
+            console.log("\n\ncould not get deck for flashcards\n\n")
+            console.log(e)
+            res.sendStatus(500)
+            return;
+        }
+
+        let cardNumber = req.params.cardNumber
+
+        if(cardNumber < 0 || cardNumber % 1 !== 0 || cardNumber.toString().includes(".") || cardNumber >= deck.cards.length) {
+            console.log("\n\ninvalid flashcard number\n\n")
+            res.json({errorMessage: "Invalid flashcard number"})
+            return;
+        }
+        else if(!req.session.user)   //  if the user is not logged in, redirect to the homepage
+            res.redirect("/")
+        else {  //  otherwise, display the back of the cardNumber-th card
+            res.render(path.resolve('views/flashcard_back.handlebars'),
+                       {id:                 id,
+                        deckName:           deck.name,
+                        backText:           deck.cards[cardNumber].back,
+                        cardNumber:         cardNumber,
+                        previousCardNumber: cardNumber - 1,
+                        nextCardNumber:     +cardNumber + 1,
+                        isFirstCard:        (+cardNumber === 0),
+                        isLastCard:         (+cardNumber === deck.cards.length - 1)
+                       }
+                      )
+        }
     })
 
 
