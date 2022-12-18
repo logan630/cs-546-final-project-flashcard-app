@@ -41,8 +41,8 @@ router
         let name=undefined
         let subject=undefined
         try{
-            name=xss(validation.checkDeckName(deckInfo.name))
-            subject=xss(validation.checkSubject(deckInfo.subject))
+            name=xss(validation.checkDeckName(req.body.name))
+            subject=xss(validation.checkSubject(req.body.subject))
         }
         catch(e){
             console.log(e)
@@ -79,7 +79,7 @@ router
         if(req.session.user){       //if it passes, create a deck with undefined error and a new deck id
             res.json({
                 //handlebars:path.resolve('views/decks.handlebars'),
-                subject: deckInfo.subject,
+                subject: req.body.subject,
                 title:u,
                 deck:yourDecks,
                 id:newDeckId,
@@ -240,7 +240,49 @@ router      //just one deck
 
         }
     })  
+router
+    .route('/decks/:id/send')           //sending a deck to another user
+    .post(async (req,res) => {
+        if(!req.body){
+            res.status(400)
+            return
+        }
+        let id=validation.checkId(req.params.id)
+        let recipient=undefined
+        try{recipient=validation.checkUsername(req.body.sendToAnotherUser)}
+        catch(e) {console.log(e)}
+        let allUsers=await users.getAllUsers()
+        if( (allUsers.filter((user) => {return user.username.toLowerCase()==recipient.toLowerCase()})).length<=0 ){         //if user doesn't exist
+            console.log("That user does not exist")
+            res.redirect('/protected/decks')
+            return
+        }
+        else{
+            let recpientDecks=undefined
+            try{
+                recipientDecks=await decks.getUsersDecks(await users.getUserIdFromName(recipient))
+            }
+            catch(e){console.log(e)}
+            let deckFromId=undefined; try{deckFromId=await decks.getDeckById(id)} catch(e){console.log(e)}
+            let recipientUser=await users.getUserFromName(recipient)                        //if the user already has the deck
+            if( (recipientDecks.filter((recdec) => {return recdec.name.toLowerCase()==deckFromId.name.toLowerCase()})).length==1 ){
+                console.log(`${recipient} already has this deck`)
+            }
+            else{
+                receivedDeck={
+                    name:deckFromId.name,
+                    dateCreated:deckFromId.dateCreated,
+                    subject:deckFromId.subject,
+                    creatorId:recipientUser._id.toString(),
+                    public:false,
+                    cards:deckFromId.cards
+                }
+                await decks.insertThisDeck(receivedDeck)                //copy the deck into the deck collection again
+            }
+        }
+        res.redirect('/protected/decks')
 
+    })
 router
     .route('/decks/:id/cards/:front')
     .get(async (req,res) => {         // /decks/:id/cards/:front        get route      for getting a specific card
@@ -476,6 +518,7 @@ router
         if(req.session.user){
             res.render(path.resolve('views/publicDecks.handlebars'),{
                 title:"Public decks",
+                loggedIn:1,
                 publicDeck:publicDecks
             })
         }
@@ -489,19 +532,11 @@ router
         }
         let id=xss(validation.checkId(req.params.id))
         let publicDeck=undefined
-        try{
-            publicDeck=await decks.getDeckById(id)
-        }
-        catch(e){
-            console.log(e)
-        }
+        try{publicDeck=await decks.getDeckById(id)}
+        catch(e){console.log(e)}
         let creator=undefined
-        try{
-            creator=await users.getUserFromId(publicDeck.creatorId)
-        }
-        catch(e){
-            console.log(e)
-        }
+        try{creator=await users.getUserFromId(publicDeck.creatorId)}
+        catch(e){console.log(e)}
         if(req.session.user){
             res.render(path.resolve('views/singlePublicDeck.handlebars'),
             {
@@ -511,7 +546,8 @@ router
                 card:publicDeck.cards,
                 creatorName:creator.username,
                 creationDate:publicDeck.dateCreated,
-                id:publicDeck._id
+                id:publicDeck._id,
+                loggedIn:1
             })
         }
     })

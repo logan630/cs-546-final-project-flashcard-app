@@ -31,6 +31,11 @@
         {{/if}}
         <button type="submit">Update deck</button>
     </form>
+    <form action="/protected/decks/{{id}}/send" method="POST">
+        <label for="sendToAnotherUser">Send this deck to another user</label>
+        <input id="sendToAnotherUser" type="text" name="sendToAnotherUser">
+        <button type="submit">Send</button>
+    </form>
     <nav>
         <div class="align-right">
             <button type="submit" class="delete-deck" id="delete-deck">Delete this deck</button>
