@@ -22,17 +22,17 @@
     <form action="/protected/decks/{{id}}/flashcards/{{cardNumber}}/front" id="flashcard-correct-form" class="flashcard-corret-form">
         <p>Did you get it correct?</p>
 
-        <input type="radio" id="correct" name="correct?">
+        <input type="radio" id="correct" name="correct?" class="radio">
         <label for="yes">Yes</label>
 
-        <input type="radio" id="incorrect" name="correct?">
+        <input type="radio" id="incorrect" name="correct?" class="radio">
         <label for="no">No</label><br>
     </form>
 
     <br><br>
     <form action="/protected/decks/{{id}}/flashcards/{{cardNumber}}/front" id="flashcard-done-form" class="flashcard-done-form">
         <label for="markAsDone">Mark as done</label>
-        <input id="markAsDone" type="checkbox" name="markAsDone">
+        <input id="markAsDone" type="checkbox" name="markAsDone" class="checkbox">
     </form>
 
     <footer><nav>
