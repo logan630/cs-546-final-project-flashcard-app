@@ -252,7 +252,7 @@ nav a:hover, .login-homepage-buttons a:hover, .view-decks a:hover {
     background-color: var(--button-color-highlight);
     cursor: pointer;
 }
-.registration-form button, .submit-button{
+.registration-form button, .submit-button {
     margin: 20px 15px;
     padding: 10px 10px;
     background-color: var(--button-color);
