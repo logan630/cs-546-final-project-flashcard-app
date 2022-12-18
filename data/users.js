@@ -18,7 +18,8 @@ const createUser = async (      //checks if user submitted valid credentials whe
     const hashed_pw=await bcrypt.hash(password.toString(),saltRounds)
     let newUser= {
       username: username,
-      password: hashed_pw
+      password: hashed_pw,
+      folders: []
     }
     const insertUser=await userCollection.insertOne(newUser);
     if(!insertUser.acknowledged || !insertUser.insertedId)
