@@ -59,6 +59,7 @@ router
             res.sendStatus(500)
             return
         }
+        let deckInfo = req.body;
         if(deckInfo.trySort || deckInfo.tryFilter) {
             return res.json({success: true});
         } else {

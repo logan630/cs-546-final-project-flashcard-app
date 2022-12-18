@@ -86,6 +86,13 @@ input {
     font-weight: bold;
     border-radius: 8px;
 }
+
+#targetSubject {
+    width: 300px;
+    height: 30px;
+    margin: 5px 30px;
+}
+
 input:hover {
     box-shadow: 0 0 5px 1px rgba(255,255,255,0.5);
 }
@@ -265,6 +272,12 @@ nav a:hover, .login-homepage-buttons a:hover, .view-decks a:hover {
     width: 200px;
     height: 75px;
 }
+
+.small-button {
+    width: 150px;
+    height: 50px;
+}
+
 .registration-form button:hover, .submit-button:hover {
     background-color: var(--button-color-highlight);
     cursor: pointer;
