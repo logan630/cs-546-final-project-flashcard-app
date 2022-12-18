@@ -4,6 +4,12 @@
     let deckNameInput=$('#decknameInput')
     let deckSubjectInput=$('#decksubjectInput')
     let deckList=$('#deck-list')
+    //sorting deck list
+    let sortDecksForm=$('#sort-decks-list-form')
+    let sortingMethod=$('#sortingMethod')
+    // filtering deck list
+    let filterDecksForm=$('#filter-decks-list-form')
+    let targetSubject=$('#targetSubject')
     //creating and adding cards
     let createCardForm=$('#create-card-form')
     let cardFrontInput=$('#cardFrontInput')
@@ -151,7 +157,7 @@
                 method: "POST",
                 url: "/protected/decks",
                 contentType: "application/json",
-                data: JSON.stringify({name: newDeckName, subject: deckSubjectInput.val()})
+                data: JSON.stringify({name: newDeckName, subject: deckSubjectInput.val(), trySort: false, tryFilter: false})
             }
             $.ajax(requestConfig)/*sends that request*/.then(function (responseMessage) {     
                 let id=responseMessage.id        
@@ -170,6 +176,59 @@
             })
         }
     })
+
+    sortDecksForm.submit((event) => {
+        event.preventDefault();
+        let currentSortingMethod = sortingMethod.val();
+        if(currentSortingMethod) {
+            let requestConfig = {
+                method: "POST",
+                url: "/protected/decks",
+                contentType: "application/json",
+                data: JSON.stringify({method: currentSortingMethod, trySort: true, tryFilter: false})
+            }
+            $.ajax(requestConfig).then((responseMessage) => {
+                if(responseMessage.success) {
+                    errorDiv.hidden = true;
+                    if(currentSortingMethod !== 'none') {
+                        window.location.href = `/protected/sorted_decks/${currentSortingMethod}`;
+                    } else {
+                        window.location.href = '/protected/decks';
+                    }
+                }
+                else {
+                    errorDiv.hidden = false;
+                    errorDiv.innerHTML = responseMessage.error;
+                    frmLabel = className = 'error';
+                }
+            })
+        }
+    })
+
+    filterDecksForm.submit((event) => {
+        event.preventDefault();
+        let currentTargetSubject = targetSubject.val();
+        if(currentTargetSubject) {
+            let requestConfig = {
+                method: "POST",
+                url: "/protected/decks",
+                contentType: "application/json",
+                data: JSON.stringify({subject: currentTargetSubject, trySort: false, tryFilter: true})
+            }
+            $.ajax(requestConfig).then((responseMessage) => {
+                if(responseMessage.success) {
+                    errorDiv.hidden = true;
+                    window.location.href = `/protected/filtered_decks/${currentTargetSubject}`;
+                }
+                else {
+                    errorDiv.hidden = false;
+                    errorDiv.innerHTML = responseMessage.error;
+                    frmLabel = className = 'error';
+                }
+            })
+        }
+    })
+
     //for editing a deck name and subject and publicity
     editDeckForm.submit(function (event) {
         event.preventDefault();

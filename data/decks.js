@@ -83,6 +83,19 @@ const getDeckById = async (deckId) => {         //finds a deck object given a de
     return deck;
 }
 
+const getDecksBySubject = async (deckSubject) => {
+    deckSubject = validation.checkSubject(deckSubject.toString());
+
+    const deckCollection = await decks();
+    const deck = await deckCollection.find({subject: {$eq: deckSubject}}).toArray();
+
+    if(!deck.length) {
+        throw new Error(`Could not find decks with the subject ${deckSubject}`);
+    }
+
+    return deck;
+}
+
 const getAllDecks = async () => {               //returns an array of all the decks
     const deckCollection=await decks()
     const deckList=await deckCollection.find({}).toArray();
@@ -223,6 +236,7 @@ module.exports = {
     createDeck,
     getDeckById,
     getAllDecks,
+    getDecksBySubject,
     getUsersDecks,
     doesUserOwnThisDeck,
     renameDeck,

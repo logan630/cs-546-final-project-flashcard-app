@@ -14,7 +14,28 @@
         </div>
         <div class="spacer"></div>
         <div class="deck-page-column">
-            <h2>My Decks</h2>
+
+            <h2>My Decks {{#if ordered}}{{order}}{{/if}}{{#if filtered}}{{subject}}{{/if}}</h2>
+
+            {{#if filterError}}
+                <div class="error">{{errorMessage}}</div>
+            {{/if}}
+
+            <form action="/protected/decks" method="POST" id="sort-decks-list-form" class="sort-decks-list-form">
+                <label for="sortingMethod">Sort by:</label>
+                <select name="sortingMethod" id="sortingMethod">
+                    <option value="none">None</option>
+                    <option value="alphabetically">Alphabetically</option>
+                    <option value="chronilogically">By Date</option>
+                </select>
+                <button type="submit" class="submit-button">Sort</button>
+            </form>
+
+            <form action="/protected/decks" method="POST" id="filter-decks-list-form" class="filter-decks-list-form">
+                <label for="targetSubject">Filter by: <input id="targetSubject" type="text" name="targetSubject"></label>
+                <button type="submit" class="submit-button">Filter</button>
+            </form>
+
             <ol id="deck-list" class="deck-list">
                 {{#each deck}}
                     <li><a href="decks/{{this._id}}">{{this.name}}</a> - Subject: {{this.subject}} </li>
