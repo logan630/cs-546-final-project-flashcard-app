@@ -5,7 +5,7 @@ const validation=require('../validation')
 const {ObjectId} = require('mongodb');
 const { use } = require('../routes/userRoutes');
 
-const createDeck = async (creator,deckName,subject,isPublic) => {
+const createDeck = async (creator,deckName,subject,isPublic,cardsArray,dateCreated) => {
     deckName = validation.checkDeckName(deckName);
     creator  = validation.checkUsername(creator);
     subject  = validation.checkSubject(subject);
@@ -20,7 +20,13 @@ const createDeck = async (creator,deckName,subject,isPublic) => {
         user = await userFunctions.getUserIdFromName(creator)
     }
     catch(e) {
-        console.dir(e)
+        console.log(e)
+    }
+    if(Array.isArray(cardsArray)){
+        cards=cardsArray
+    }
+    else{
+        cards=[]
     }
     let d=new Date()
     let newDeck = {         //creating deck object  
@@ -29,12 +35,23 @@ const createDeck = async (creator,deckName,subject,isPublic) => {
         subject:subject,
         creatorId:user,
         public:isPublic,
-        cards: []
+        cards: cards
+    }
+    if(typeof dateCreated!='undefined'){
+        newDeck.dateCreated=dateCreated
     }
     const insertDeck=await deckCollection.insertOne(newDeck)        //insert that deck object
     if(!insertDeck.acknowledged || !insertDeck.insertedId) 
         throw "Could not add deck"
     return insertDeck
+}
+
+const insertThisDeck = async (deck) => {
+    const deckCollection=await decks();
+    const insertDeck=await deckCollection.insertOne(deck)
+    if(!insertDeck.acknowledged || !insertDeck.insertedId) 
+        throw "Could not add deck"
+    return deck
 }
 
 const removeDeck = async (id) => {      //deletes deck by id
@@ -96,9 +113,12 @@ const getAllDecks = async () => {               //returns an array of all the de
 const getUsersDecks = async(userId) => {            //gets the decks for a specific user
     userId=validation.checkId(userId)
     const allDecks = await getAllDecks();
-    let userDecks = allDecks.filter(deck => {
-        return deck.creatorId.toString()===userId.toString()
-    })
+    let userDecks=[]
+    for(deck of allDecks){
+        if(deck.creatorId!=null)
+            if(deck.creatorId.toString()===userId.toString())
+                userDecks.push(deck)
+    }
     return userDecks
 }
 
@@ -124,13 +144,13 @@ const doesUserOwnThisDeck = async(userName,deckId) => {     //returns whether or
     return false
 }
 
-const createCard = async (front,back,deckName) => {
+const createCard = async (front,back,deckId) => {
     front=validation.checkCard(front,'front')
     back=validation.checkCard(back,'back')
+    deckId=validation.checkId(deckId.toString())
     const deckCollection=await decks();
-    const deck=await deckCollection.findOne({name:deckName})
+    const deck=await deckCollection.findOne({_id:ObjectId(deckId)})
     if(!deck) throw "Deck not found"
-    const deckId=deck._id
     if(deck.cards.length>0)             //checks if that card (front) is already present in the deck
         for(i of deck.cards){
             if(i.front.toLowerCase()===front.toLowerCase()){
@@ -144,7 +164,7 @@ const createCard = async (front,back,deckName) => {
     }
     tempObject.cards.push(newCard)
     return deckCollection
-        .updateOne({_id: ObjectId(deck._id)},{$set:tempObject})
+        .updateOne({_id: ObjectId(deckId)},{$set:tempObject})
         .then(function() {
             return getDeckById(deckId)
         })
@@ -216,11 +236,12 @@ const getCardBack = async (id,front) => {       //takes a deck id and the front 
             return item.back
         }
     }
-    //throw `Card named ${front} not found`
+    throw `Card named ${front} not found`
 }
 
 module.exports = {
     createDeck,
+    insertThisDeck,
     getDeckById,
     getAllDecks,
     getUsersDecks,

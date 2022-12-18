@@ -6,16 +6,16 @@ const path=require('path')
 const users=require('../data/users')
 const decks=require('../data/decks')
 const validation=require('../validation')
+const xss=require('xss')
 
 router      
     .route('/decks')
     .get(async (req, res) => { // /decks get route (when you go to the decks page)
-        let userInfo=req.body;
-        if(!userInfo){                  //if user info request fails 
+        if(!req.body){                  //if user info request fails 
             res.sendStatus(400)
             return
         }
-        let u=req.session.user.username
+        let u=xss(req.session.user.username)
         let userId=undefined
         let yourDecks=undefined
         try {           
@@ -34,12 +34,21 @@ router
         }
     })
     .post(async (req,res) => {  // /decks post route (when you create a deck)
-        let deckInfo=req.body
-        if(!deckInfo){                  //if deck info request fails
+        if(!req.body){                  //if deck info request fails
             res.status(400)
             return
         }
-        let u=req.session.user.username
+        let name=undefined
+        let subject=undefined
+        try{
+            name=xss(validation.checkDeckName(deckInfo.name))
+            subject=xss(validation.checkSubject(deckInfo.subject))
+        }
+        catch(e){
+            console.log(e)
+        }
+        let u=xss(req.session.user.username)
+
         let yourDecks=undefined
         try{
             yourDecks=await decks.getAllDecks()
@@ -50,9 +59,8 @@ router
             return
         }
         let newDeck=undefined;
-        let error=undefined;
-        try {                                       //req.body.name is the name of the deck
-            newDeck = await decks.createDeck(u, deckInfo.name, deckInfo.subject, false)
+        try {                                     
+            newDeck = await decks.createDeck(u, name, subject, false)
         }
         catch(e){           //if creating a deck fails, send handlebars page with thrown error
             console.log(e)
@@ -75,8 +83,7 @@ router
                 title:u,
                 deck:yourDecks,
                 id:newDeckId,
-                success:true,
-                error:error
+                success:true
             })
             //res.render(path.resolve('views/decks.handlebars'),{title:u,deck:yourDecks,userName:u,id:newDeckId})
         }
@@ -86,8 +93,7 @@ router      //just one deck
     .route('/decks/:id')
     .get(async (req, res) => {      // /decks/:id /get route (when you go to that page)
         //console.log("Get id: "+req.params.id)
-        let userInfo=req.body;          //same idea as above
-        if(!userInfo){
+        if(!req.body){
             res.status(400)
             return
         }
@@ -113,7 +119,8 @@ router      //just one deck
                 deckName:deck.name, 
                 subject: deck.subject,
                 id:id,
-                public:deck.public
+                public:deck.public,
+                dateCreated:deck.dateCreated
             })
         }
     })
@@ -121,7 +128,7 @@ router      //just one deck
         let id=undefined;
         let deck=undefined; 
         let front=undefined;
-        let back=undefined;
+        let back=req.body.back;
         try {       //try to check id and get the decks
             id=validation.checkId(req.params.id)
             deck=await decks.getDeckById(id)
@@ -133,9 +140,9 @@ router      //just one deck
         }
         let card=undefined  //variable for the created card
         try{            //validate front and back. Check creating card
-            front=validation.checkCard(req.body.front,'front')
-            back=validation.checkCard(req.body.back,'back')
-            card=await decks.createCard(front,back,deck.name)
+            front=xss(validation.checkCard(req.body.front,'front'))
+            back=xss(validation.checkCard(req.body.back,'back'))
+            card=await decks.createCard(front,back,deck._id)
         }
         catch(e){           //if any of those fail, render the appropriate error
             console.log(e)
@@ -236,9 +243,8 @@ router      //just one deck
 
 router
     .route('/decks/:id/cards/:front')
-    .get(async (req,res) => {         // /decks/:id/cards/:front    get route      for getting a specific card
-        let cardInfo=req.body
-        if(!cardInfo){
+    .get(async (req,res) => {         // /decks/:id/cards/:front        get route      for getting a specific card
+        if(!req.body){
             res.sendStatus(500)
             return
         }
@@ -275,8 +281,8 @@ router
     })
     .patch(async (req,res) => {             // /decks/:id/cards/:front      patch route     (changing a card front and back)
         let id=validation.checkId(req.params.id)
-        let front=req.body.front
-        let back=req.body.back
+        let front=xss(req.body.front)
+        let back=xss(req.body.back)
         let deck=undefined
         let oldFront=req.params.front
         try{
@@ -288,7 +294,7 @@ router
         catch(e){
             console.log(e)
                 res.json({
-                    handlebars:path.resolve('views/card.handlebars'),
+                    //handlebars:path.resolve('views/card.handlebars'),
                     title:front,
                     id:id,
                     cardFront:front,
@@ -299,30 +305,28 @@ router
                 })
                 return
             }
-        let a=undefined
         try{
-            a=await decks.updateCard(id,oldFront,front,back)
+            await decks.updateCard(id,oldFront,front,back)
         }
         catch(e){
             console.log(e)
         }
         if(req.session.user){
-            //console.log(front,back)
             res.json({
                 handlebars:path.resolve('views/card.handlebars'),
                 title:front,
                 id:id,
                 cardFront:front,
-                cardBack:back,
+                cardBack:"bad boy",
                 success:true,
                 error:undefined,
-                deckName:deck.name
+                deckName:xss(deck.name)
             })
         }
     })
     .delete(async(req,res) => {             //  /decks/:id/cards/:front     delete route    (delete a card)
-        let id=validation.checkId(req.params.id)
-        let front=validation.checkCard(req.params.front,'front')
+        let id=xss(validation.checkId(req.params.id))
+        let front=xss(validation.checkCard(req.params.front,'front'))
         try{
             await decks.removeCard(id,front)
         }
@@ -450,5 +454,103 @@ router
         }
     })
 
-
+router
+    .route('/publicdecks')
+    .get(async(req,res) => {            //      /publicdecks get route.     For browsing public decks.
+        if(!req.body){
+            res.status(400)
+            return
+        }
+        let allDecks=undefined
+        try{
+            allDecks=await decks.getAllDecks()
+        }
+        catch(e){
+            console.log(e)
+            res.sendStatus(500)
+            return
+        }
+        let publicDecks=allDecks.filter((deck) => {         //filters for just public decks
+            return deck.public===true
+        })
+        if(req.session.user){
+            res.render(path.resolve('views/publicDecks.handlebars'),{
+                title:"Public decks",
+                publicDeck:publicDecks
+            })
+        }
+    })
+router
+    .route('/publicdecks/:id')
+    .get(async(req,res) => {            //      /publicdecks/:id    get route.      For viewing the cards of a public deck.
+        if(!req.body){
+            res.status(400)
+            return
+        }
+        let id=xss(validation.checkId(req.params.id))
+        let publicDeck=undefined
+        try{
+            publicDeck=await decks.getDeckById(id)
+        }
+        catch(e){
+            console.log(e)
+        }
+        let creator=undefined
+        try{
+            creator=await users.getUserFromId(publicDeck.creatorId)
+        }
+        catch(e){
+            console.log(e)
+        }
+        if(req.session.user){
+            res.render(path.resolve('views/singlePublicDeck.handlebars'),
+            {
+                title:publicDeck.name,
+                deckName:publicDeck.name,
+                subject:publicDeck.subject,
+                card:publicDeck.cards,
+                creatorName:creator.username,
+                creationDate:publicDeck.dateCreated,
+                id:publicDeck._id
+            })
+        }
+    })
+    .post(async(req,res) => {           //      /publicdecks/:id        post route.     For when a user saves a public deck
+        if(!req.body){
+            res.status(400)
+            return
+        }
+        let deckToSave=undefined
+        let id=undefined
+        try{id=await validation.checkId(req.params.id)}
+        catch(e){console.log(e)}
+        try{deckToSave=await decks.getDeckById(id)}
+        catch(e){console.log(e)}
+        let ID=undefined
+        try {ID=await users.getUserIdFromName(req.session.user.username)}
+        catch(e) {console.log(e)}
+        let copyDeck = {                    //makes a deep copy of the deck to insert
+            name:deckToSave.name,
+            dateCreated:deckToSave.dateCreated,
+            subject:deckToSave.subject,
+            creatorId:ID,
+            public:false,
+            cards:deckToSave.cards
+        }
+        const userDecks=await decks.getUsersDecks(ID);
+        for(deck of userDecks){
+            if(deck.name===deckToSave.name){
+                console.log(`You already have a deck named ${deck.name} in your decks`)
+                res.redirect('/protected/publicdecks')
+                return
+            }
+        }
+        try{
+            await decks.insertThisDeck(copyDeck)
+        }
+        catch(e){
+            console.log(e)
+        }
+        res.redirect('/protected/publicdecks')
+    })
 module.exports = router;

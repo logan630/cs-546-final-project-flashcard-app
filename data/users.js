@@ -4,6 +4,7 @@ const mongoCollections = require('../config/mongoCollections');
 const users = mongoCollections.users
 const validation=require('../validation')
 const {ObjectId} = require('mongodb');
+const xss=require('xss')
 
 const createUser = async (      //checks if user submitted valid credentials when registering
     username, password
@@ -26,8 +27,8 @@ const createUser = async (      //checks if user submitted valid credentials whe
   };
 
 const checkUser = async (username, password) => {   //checks if user login is valid
-    username=validation.checkUsername(username)
-    password=validation.checkPassword(password)
+    username=xss(validation.checkUsername(username))
+    password=xss(validation.checkPassword(password))
     const userCollection=await users();
     const user=await userCollection.findOne({username:username})
     if(!user) throw "Either the username or password is invalid"
@@ -52,7 +53,6 @@ const getUserFromId = async(id) => {    //given an id of a user, return the user
   userFromId._id=userFromId._id.toString()
   return userFromId
 }
-
 
 const getUserFromName = async (userName) => {       //given a username, return the object that corresponds to it
   userName=validation.checkUsername(userName)

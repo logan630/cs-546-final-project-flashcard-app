@@ -62,8 +62,9 @@ p {
     text-align:center;
 }
 header {
-    color: var(--color-sky-blue);
-    font-size: 40px;
+    color: rgb(255,255,255);
+    font-size: 25px;
+    margin-left: 15px;
 }
 body {
     background-color: var(--bg-gray);
@@ -155,7 +156,12 @@ footer {
     left: 0;
     margin-bottom: 13px;
 }
-
+a {
+    color: rgb(255,255,255);
+}
+a :hover {
+    color: rgb(255,255,100);
+}
 nav {
     margin-top: 12px;
 }
@@ -246,7 +252,7 @@ nav a:hover, .login-homepage-buttons a:hover, .view-decks a:hover {
     background-color: var(--button-color-highlight);
     cursor: pointer;
 }
-.registration-form button, .submit-button{
+.registration-form button, .submit-button {
     margin: 20px 15px;
     padding: 10px 10px;
     background-color: var(--button-color);
