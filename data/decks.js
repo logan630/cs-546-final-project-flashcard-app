@@ -5,7 +5,7 @@ const validation=require('../validation')
 const {ObjectId} = require('mongodb');
 const { use } = require('../routes/userRoutes');
 
-const createDeck = async (creator,deckName,subject,isPublic) => {
+const createDeck = async (creator,deckName,subject,isPublic,cardsArray,dateCreated) => {
     deckName = validation.checkDeckName(deckName);
     creator  = validation.checkUsername(creator);
     subject  = validation.checkSubject(subject);
@@ -20,7 +20,13 @@ const createDeck = async (creator,deckName,subject,isPublic) => {
         user = await userFunctions.getUserIdFromName(creator)
     }
     catch(e) {
-        console.dir(e)
+        console.log(e)
+    }
+    if(Array.isArray(cardsArray)){
+        cards=cardsArray
+    }
+    else{
+        cards=[]
     }
     let d=new Date()
     let newDeck = {         //creating deck object  
@@ -29,12 +35,23 @@ const createDeck = async (creator,deckName,subject,isPublic) => {
         subject:subject,
         creatorId:user,
         public:isPublic,
-        cards: []
+        cards:cards
+    }
+    if(typeof dateCreated!='undefined'){
+        newDeck.dateCreated=dateCreated
     }
     const insertDeck=await deckCollection.insertOne(newDeck)        //insert that deck object
     if(!insertDeck.acknowledged || !insertDeck.insertedId) 
         throw "Could not add deck"
     return insertDeck
+}
+
+const insertThisDeck = async (deck) => {
+    const deckCollection=await decks();
+    const insertDeck=await deckCollection.insertOne(deck)
+    if(!insertDeck.acknowledged || !insertDeck.insertedId) 
+        throw "Could not add deck"
+    return deck
 }
 
 const removeDeck = async (id) => {      //deletes deck by id
@@ -109,9 +126,12 @@ const getAllDecks = async () => {               //returns an array of all the de
 const getUsersDecks = async(userId) => {            //gets the decks for a specific user
     userId=validation.checkId(userId)
     const allDecks = await getAllDecks();
-    let userDecks = allDecks.filter(deck => {
-        return deck.creatorId.toString()===userId.toString()
-    })
+    let userDecks=[]
+    for(deck of allDecks){
+        if(deck.creatorId!=null)
+            if(deck.creatorId.toString()===userId.toString())
+                userDecks.push(deck)
+    }
     return userDecks
 }
 
@@ -137,13 +157,13 @@ const doesUserOwnThisDeck = async(userName,deckId) => {     //returns whether or
     return false
 }
 
-const createCard = async (front,back,deckName) => {
+const createCard = async (front,back,deckId) => {
     front=validation.checkCard(front,'front')
     back=validation.checkCard(back,'back')
+    deckId=validation.checkId(deckId.toString())
     const deckCollection=await decks();
-    const deck=await deckCollection.findOne({name:deckName})
+    const deck=await deckCollection.findOne({_id:ObjectId(deckId)})
     if(!deck) throw "Deck not found"
-    const deckId=deck._id
     if(deck.cards.length>0)             //checks if that card (front) is already present in the deck
         for(i of deck.cards){
             if(i.front.toLowerCase()===front.toLowerCase()){
@@ -157,7 +177,7 @@ const createCard = async (front,back,deckName) => {
     }
     tempObject.cards.push(newCard)
     return deckCollection
-        .updateOne({_id: ObjectId(deck._id)},{$set:tempObject})
+        .updateOne({_id: ObjectId(deckId)},{$set:tempObject})
         .then(function() {
             return getDeckById(deckId)
         })
@@ -216,7 +236,7 @@ const updateCard = async (id,oldFront,newFront,newBack) => {   //takes a deck id
 
 const getCardBack = async (id,front) => {       //takes a deck id and the front of a card. Returns the back of a card
     id=validation.checkId(id)
-    front=validation.checkCard(front,'front')
+    //front=validation.checkCard(front,'front')
     let deck=undefined;
     try{
         deck=await getDeckById(id)
@@ -232,8 +252,29 @@ const getCardBack = async (id,front) => {       //takes a deck id and the front 
     //throw `Card named ${front} not found`
 }
 
+
+//  Performs a Durstenfeld shuffle on a deep copy of an array, then returns the shuffled copied array.
+//  Source: https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+function shuffleArray(array) {
+    if(!(Array.isArray(array)))
+        throw "shuffleArray: parameter \"array\" must be of type array, obviously"
+        
+    let A = []
+    for(let i in array)
+        A.push(array[i])
+
+    for(let i = A.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [A[i], A[j]] = [A[j], A[i]];
+    }
+
+    return A
+}
+
+
 module.exports = {
     createDeck,
+    insertThisDeck,
     getDeckById,
     getAllDecks,
     getDecksBySubject,
@@ -244,5 +285,6 @@ module.exports = {
     createCard,
     removeCard,
     updateCard,
-    getCardBack
+    getCardBack,
+    shuffleArray
 }

@@ -1,11 +1,10 @@
 //This file is for handling user register and login
 const express=require('express')
 const router=express.Router()
-const bcrypt=require('bcryptjs')
 const path=require('path')
 const users=require('../data/users')
 const validation=require('../validation')
-const saltRounds=11;
+const xss=require('xss')
 
 router
   .route('/')
@@ -28,7 +27,7 @@ router
     try{
       validation.checkUsername(req.body.usernameInput)
       validation.checkPassword(req.body.passwordInput)
-      check=await users.createUser(req.body.usernameInput,req.body.passwordInput)
+      check=await users.createUser(xss(req.body.usernameInput),xss(req.body.passwordInput))
     }
     catch(e){
       res.render(path.resolve('views/register.handlebars'),{errorMessage:e,title:"Registration error"})
@@ -56,7 +55,7 @@ router
     try {
       validation.checkUsername(req.body.usernameInput)
       validation.checkPassword(req.body.passwordInput)
-      check=await users.checkUser(req.body.usernameInput,req.body.passwordInput) 
+      check=await users.checkUser(xss(req.body.usernameInput),xss(req.body.passwordInput)) 
     }
     catch(e){     //if the user puts in bad data
         res.render(path.resolve('views/login.handlebars'),{errorMessage:e,title:"Login error"})
@@ -70,7 +69,7 @@ router
     }
     if(check.authenticatedUser==true){
       //if the user logs in successfully, set the session user to be the username, and redirect to protected
-      req.session.user={username: req.body.usernameInput}
+      req.session.user={username: xss(req.body.usernameInput)}
       res.redirect('/protected')
     }
   })
@@ -107,7 +106,8 @@ router
     }
     else {
       req.session.destroy()
-      res.render(path.resolve('views/logout.handlebars'),{title:"Logged out"});
+      res.redirect('/')
+      //res.render(path.resolve('views/logout.handlebars'),{title:"Logged out"});
     }
   })
 

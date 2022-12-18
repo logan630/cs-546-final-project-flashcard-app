@@ -6,16 +6,17 @@ const path=require('path')
 const users=require('../data/users')
 const decks=require('../data/decks')
 const validation=require('../validation')
+const xss=require('xss')
+const { url } = require('inspector')
 
 router      
     .route('/decks')
     .get(async (req, res) => { // /decks get route (when you go to the decks page)
-        let userInfo=req.body;
-        if(!userInfo){                  //if user info request fails 
+        if(!req.body){                  //if user info request fails 
             res.sendStatus(400)
             return
         }
-        let u=req.session.user.username
+        let u=xss(req.session.user.username)
         let userId=undefined
         let yourDecks=undefined
         try {           
@@ -33,13 +34,22 @@ router
             res.render(path.resolve('views/decks.handlebars'),{title:u,deck:yourDecks,userName:u})
         }
     })
-    .post(async (req,res) => {  // /decks post route (when you create a deck)
-        let deckInfo=req.body
-        if(!deckInfo){                  //if deck info request fails
+    .post(async (req,res) => {  //          /decks post route (when you create a deck)
+        if(!req.body){                  //if deck info request fails
             res.status(400)
             return
         }
-        let u=req.session.user.username
+        let name=undefined
+        let subject=undefined
+        try{
+            name=xss(validation.checkDeckName(req.body.name))
+            subject=xss(validation.checkSubject(req.body.subject))
+        }
+        catch(e){
+            console.log(e)
+        }
+        let u=xss(req.session.user.username)
+
         let yourDecks=undefined
         try{
             yourDecks=await decks.getAllDecks()
@@ -205,8 +215,7 @@ router      //just one deck
     .route('/decks/:id')
     .get(async (req, res) => {      // /decks/:id /get route (when you go to that page)
         //console.log("Get id: "+req.params.id)
-        let userInfo=req.body;          //same idea as above
-        if(!userInfo){
+        if(!req.body){
             res.status(400)
             return
         }
@@ -232,7 +241,8 @@ router      //just one deck
                 deckName:deck.name, 
                 subject: deck.subject,
                 id:id,
-                public:deck.public
+                public:deck.public,
+                dateCreated:deck.dateCreated
             })
         }
     })
@@ -240,7 +250,7 @@ router      //just one deck
         let id=undefined;
         let deck=undefined; 
         let front=undefined;
-        let back=undefined;
+        let back=req.body.back;
         try {       //try to check id and get the decks
             id=validation.checkId(req.params.id)
             deck=await decks.getDeckById(id)
@@ -252,9 +262,9 @@ router      //just one deck
         }
         let card=undefined  //variable for the created card
         try{            //validate front and back. Check creating card
-            front=validation.checkCard(req.body.front,'front')
-            back=validation.checkCard(req.body.back,'back')
-            card=await decks.createCard(front,back,deck.name)
+            front=xss(validation.checkCard(req.body.front,'front'))
+            back=xss(validation.checkCard(req.body.back,'back'))
+            card=await decks.createCard(front,back,deck._id)
         }
         catch(e){           //if any of those fail, render the appropriate error
             console.log(e)
@@ -352,12 +362,53 @@ router      //just one deck
 
         }
     })  
+router
+    .route('/decks/:id/send')           //sending a deck to another user
+    .post(async (req,res) => {
+        if(!req.body){
+            res.status(400)
+            return
+        }
+        let id=validation.checkId(req.params.id)
+        let recipient=undefined
+        try{recipient=validation.checkUsername(req.body.sendToAnotherUser)}
+        catch(e) {console.log(e)}
+        let allUsers=await users.getAllUsers()
+        if( (allUsers.filter((user) => {return user.username.toLowerCase()==recipient.toLowerCase()})).length<=0 ){         //if user doesn't exist
+            console.log("That user does not exist")
+            res.redirect('/protected/decks')
+            return
+        }
+        else{
+            let recpientDecks=undefined
+            try{
+                recipientDecks=await decks.getUsersDecks(await users.getUserIdFromName(recipient))
+            }
+            catch(e){console.log(e)}
+            let deckFromId=undefined; try{deckFromId=await decks.getDeckById(id)} catch(e){console.log(e)}
+            let recipientUser=await users.getUserFromName(recipient)                        //if the user already has the deck
+            if( (recipientDecks.filter((recdec) => {return recdec.name.toLowerCase()==deckFromId.name.toLowerCase()})).length==1 ){
+                console.log(`${recipient} already has this deck`)
+            }
+            else{
+                receivedDeck={
+                    name:deckFromId.name,
+                    dateCreated:deckFromId.dateCreated,
+                    subject:deckFromId.subject,
+                    creatorId:recipientUser._id.toString(),
+                    public:false,
+                    cards:deckFromId.cards
+                }
+                await decks.insertThisDeck(receivedDeck)                //copy the deck into the deck collection again
+            }
+        }
+        res.redirect('/protected/decks')
 
+    })
 router
     .route('/decks/:id/cards/:front')
-    .get(async (req,res) => {         // /decks/:id/cards/:front    get route      for getting a specific card
-        let cardInfo=req.body
-        if(!cardInfo){
+    .get(async (req,res) => {         // /decks/:id/cards/:front        get route      for getting a specific card
+        if(!req.body){
             res.sendStatus(500)
             return
         }
@@ -370,8 +421,9 @@ router
         catch(e){
             console.log(e)
         }
-        let oldFront=req.params.front
-        let back=await decks.getCardBack(id,oldFront)
+        let oldFront=req.url.substring(req.url.indexOf("/cards/")+7).replace(/%20/g," ")
+        let back=undefined
+        try{ back=await decks.getCardBack(id,oldFront)} catch(e) {console.log(e)}
         try{
             oldFront=validation.checkCard(oldFront,'front')
         }
@@ -394,10 +446,10 @@ router
     })
     .patch(async (req,res) => {             // /decks/:id/cards/:front      patch route     (changing a card front and back)
         let id=validation.checkId(req.params.id)
-        let front=req.body.front
-        let back=req.body.back
+        let front=xss(req.body.front)
+        let back=xss(req.body.back)
         let deck=undefined
-        let oldFront=req.params.front
+        let oldFront=req.url.substring(req.url.indexOf("/cards/")+7).replace(/%20/g," ")
         try{
             front=validation.checkCard(front,'front')
             oldFront=validation.checkCard(oldFront,'front')
@@ -407,7 +459,7 @@ router
         catch(e){
             console.log(e)
                 res.json({
-                    handlebars:path.resolve('views/card.handlebars'),
+                    //handlebars:path.resolve('views/card.handlebars'),
                     title:front,
                     id:id,
                     cardFront:front,
@@ -418,39 +470,38 @@ router
                 })
                 return
             }
-        let a=undefined
         try{
-            a=await decks.updateCard(id,oldFront,front,back)
+            await decks.updateCard(id,oldFront,front,back)
         }
         catch(e){
             console.log(e)
         }
         if(req.session.user){
-            //console.log(front,back)
             res.json({
                 handlebars:path.resolve('views/card.handlebars'),
                 title:front,
                 id:id,
                 cardFront:front,
-                cardBack:back,
+                cardBack:"bad boy",
                 success:true,
                 error:undefined,
-                deckName:deck.name
+                deckName:xss(deck.name)
             })
         }
     })
     .delete(async(req,res) => {             //  /decks/:id/cards/:front     delete route    (delete a card)
-        let id=validation.checkId(req.params.id)
-        let front=validation.checkCard(req.params.front,'front')
-        try{
-            await decks.removeCard(id,front)
-        }
+        let id=(validation.checkId(req.params.id))
+        let front=req.url.substring(req.url.indexOf("/cards/")+7).replace(/%20/g," ")
+        let back=undefined
+        try{back=await decks.getCardBack(id,front)} catch(e){console.log(e)}
+        try{await decks.removeCard(id,front)}
         catch(e){
             console.log(e)
             res.json({
                 success:true,
                 error:e
             })
+            return
         }
         if(req.session.user){
             res.json({
@@ -459,40 +510,295 @@ router
         }
     })
 
+
+
+
 router
     .route('/decks/:id/flashcards')
     .get(async(req, res) => {
-        if(!req.session.user)   //  if the user is not logged in
+        //  First check that the id is valid, and that there actually is a deck with that id
+        let id   = undefined
+        let deck = undefined
+        try {
+            id   = validation.checkId(req.params.id)
+            deck = await decks.getDeckById(id)
+        }
+        catch(errorMessage) {
+            console.log("\n\ncould not get deck for flashcards\n\n")
+            console.log(e)
+            res.sendStatus(500)
+            return;
+        }
+
+        if(!req.session.user)   //  if the user is not logged in, redirect to the homepage
             res.redirect("/")
-        else if(req.params.cards.length === 0)   //  if the deck is empty
-            res.render(path.resolve('views/flashcardsEmpty.handlebars'))
-        else
-            res.redirect('/decks/:id/flashcards/0/front', {cardNumber: 0})
+        else if(deck.cards.length === 0)   //  if the deck has no cards, display a page that tells the user this
+            res.render(path.resolve('views/flashcards_empty.handlebars'), {id: id})
+        else    //  an authenticated user will initially see the front of the first flashcard of a non-empty deck
+            res.redirect(`/protected/decks/${id}/flashcards/${req.params.cardNumber = 0}/front`)
     })
+
+
 
 router
     .route('/decks/:id/flashcards/:cardNumber/front')
     .get(async(req, res) => {
-        res.render(path.resolve('views/flashcard_front.handlebars'))
-        //  if this is the first card of the deck, then hide the "previous card" button
-        //  if this is the last card of the deck, then hide the "next card" button
-        //  if the "flip to back" button is clicked, then go to '/decks/:id/flashcards/:cardNumber/back'
-        //  if the "previous card" button is clicked, decrement the card number by 1 and go to '/decks/:id/flashcards/:cardNumber/front'
-        //  if the "next card" button is clicked, increment the card number by 1 and go to '/decks/:id/flashcards/:cardNumber/front'
-        //  Also has a "correct/incorrect" radio form, and a "done" checkbox
+        //  First check that the id is valid, and that there actually is a deck with that id
+        let id   = undefined
+        let deck = undefined
+        try {
+            id   = validation.checkId(req.params.id)
+            deck = await decks.getDeckById(id)
+        }
+        catch(errorMessage) {
+            console.log("\n\ncould not get deck for flashcards\n\n")
+            console.log(e)
+            res.sendStatus(500)
+            return;
+        }
+
+        let cardNumber = req.params.cardNumber
+
+        if(cardNumber < 0 || cardNumber % 1 !== 0 || cardNumber.toString().includes(".") || cardNumber >= deck.cards.length) {
+            console.log("\n\ninvalid flashcard number\n\n")
+            res.json({errorMessage: "Invalid flashcard number"})
+            return;
+        }
+        else if(!req.session.user)   //  if the user is not logged in, redirect to the homepage
+            res.redirect("/")
+        else {  //  otherwise, display the back of the cardNumber-th card
+            res.render(path.resolve('views/flashcard_front.handlebars'),
+                       {id        : id,
+                        deckName  : deck.name,
+                        frontText : deck.cards[cardNumber].front,
+                        cardNumber: cardNumber
+                       }
+                      )
+        }
     })
+
+
 
 router
     .route('/decks/:id/flashcards/:cardNumber/back')
     .get(async(req, res) => {
-        res.render(path.resolve('views/flashcard_back.handlebars'))
-        //  if this is the first card of the deck, then hide the "previous card" button
-        //  if this is the last card of the deck, then hide the "next card" button
-        //  if the "flip to front" button is clicked, then go to '/decks/:id/flashcards/:cardNumber/front'
-        //  if the "previous card" button is clicked, decrement the card number by 1 and go to '/decks/:id/flashcards/:cardNumber/front'
-        //  if the "next card" button is clicked, increment the card number by 1 and go to '/decks/:id/flashcards/:cardNumber/front'
-        //  Also has a "correct/incorrect" radio form, and a "done" checkbox
+        //  First check that the id is valid, and that there actually is a deck with that id
+        let id   = undefined
+        let deck = undefined
+        try {
+            id   = validation.checkId(req.params.id)
+            deck = await decks.getDeckById(id)
+        }
+        catch(errorMessage) {
+            console.log("\n\ncould not get deck for flashcards\n\n")
+            console.log(e)
+            res.sendStatus(500)
+            return;
+        }
+
+        let cardNumber = req.params.cardNumber
+
+        if(cardNumber < 0 || cardNumber % 1 !== 0 || cardNumber.toString().includes(".") || cardNumber >= deck.cards.length) {
+            console.log("\n\ninvalid flashcard number\n\n")
+            res.json({errorMessage: "Invalid flashcard number"})
+            return;
+        }
+        else if(!req.session.user)   //  if the user is not logged in, redirect to the homepage
+            res.redirect("/")
+        else {  //  otherwise, display the back of the cardNumber-th card
+            res.render(path.resolve('views/flashcard_back.handlebars'),
+                       {id                : id,
+                        deckName          : deck.name,
+                        backText          : deck.cards[cardNumber].back,
+                        cardNumber        : cardNumber,
+                        previousCardNumber: cardNumber - 1,
+                        nextCardNumber    : +cardNumber + 1,
+                        isFirstCard       : (+cardNumber === 0),
+                        isLastCard        : (+cardNumber === deck.cards.length - 1)
+                       }
+                      )
+        }
     })
 
+router
+    .route('/publicdecks')
+    .get(async(req,res) => {            //      /publicdecks get route.     For browsing public decks.
+        if(!req.body){
+            res.status(400)
+            return
+        }
+        let allDecks=undefined
+        try{
+            allDecks=await decks.getAllDecks()
+        }
+        catch(e){
+            console.log(e)
+            res.sendStatus(500)
+            return
+        }
+        let publicDecks=allDecks.filter((deck) => {         //filters for just public decks
+            return deck.public===true
+        })
+        if(req.session.user){
+            res.render(path.resolve('views/publicDecks.handlebars'),{
+                title:"Public decks",
+                loggedIn:1,
+                publicDeck:publicDecks
+            })
+        }
+    })
+router
+    .route('/publicdecks/:id')
+    .get(async(req,res) => {            //      /publicdecks/:id    get route.      For viewing the cards of a public deck.
+        if(!req.body){
+            res.status(400)
+            return
+        }
+        let id=xss(validation.checkId(req.params.id))
+        let publicDeck=undefined
+        try{publicDeck=await decks.getDeckById(id)}
+        catch(e){console.log(e)}
+        let creator=undefined
+        try{creator=await users.getUserFromId(publicDeck.creatorId)}
+        catch(e){console.log(e)}
+        if(req.session.user){
+            res.render(path.resolve('views/singlePublicDeck.handlebars'),
+            {
+                title:publicDeck.name,
+                deckName:publicDeck.name,
+                subject:publicDeck.subject,
+                card:publicDeck.cards,
+                creatorName:creator.username,
+                creationDate:publicDeck.dateCreated,
+                id:publicDeck._id,
+                loggedIn:1
+            })
+        }
+    })
+    .post(async(req,res) => {           //      /publicdecks/:id        post route.     For when a user saves a public deck
+        if(!req.body){
+            res.status(400)
+            return
+        }
+        let deckToSave=undefined
+        let id=undefined
+        try{id=await validation.checkId(req.params.id)}
+        catch(e){console.log(e)}
+        try{deckToSave=await decks.getDeckById(id)}
+        catch(e){console.log(e)}
+        let ID=undefined
+        try {ID=await users.getUserIdFromName(req.session.user.username)}
+        catch(e) {console.log(e)}
+        let copyDeck = {                    //makes a deep copy of the deck to insert
+            name:deckToSave.name,
+            dateCreated:deckToSave.dateCreated,
+            subject:deckToSave.subject,
+            creatorId:ID,
+            public:false,
+            cards:deckToSave.cards
+        }
+        const userDecks=await decks.getUsersDecks(ID);
+        for(deck of userDecks){
+            if(deck.name===deckToSave.name){
+                console.log(`You already have a deck named ${deck.name} in your decks`)
+                res.redirect('/protected/publicdecks')
+                return
+            }
+        }
+        try{
+            await decks.insertThisDeck(copyDeck)
+        }
+        catch(e){
+            console.log(e)
+        }
+        res.redirect('/protected/publicdecks')
+    })
+
+    let shuffledCards = undefined
+
+    router
+        .route('/decks/:id/matchingGame')
+        .get(async(req, res) => {
+            //  First check that the id is valid, and that there actually is a deck with that id
+            let id   = undefined
+            let deck = undefined
+            try {
+                id   = validation.checkId(req.params.id)
+                deck = await decks.getDeckById(id)
+            }
+            catch(errorMessage) {
+                console.log("\n\ncould not get deck for matching game\n\n")
+                console.log(e)
+                res.sendStatus(500)
+                return;
+            }
+
+            if(!req.session.user)   //  if the user is not logged in, redirect to the homepage
+                res.redirect("/")
+            else if(deck.cards.length === 0)   //  if the deck has no cards, display a page that tells the user this
+                res.render(path.resolve('views/matchingGame_empty.handlebars'), {id: id})
+            else {  //  an authenticated user will play the matching game on a non-empty deck
+                shuffledCards = decks.shuffleArray(deck.cards)
+                res.render(path.resolve('views/matchingGame.handlebars'),
+                                        {id            : id,
+                                         deckName      : deck.name,
+                                         sortedCards   : deck.cards,
+                                         shuffledCards : shuffledCards,
+                                         userInputError: true
+                                        }
+                                       )
+            }
+
+        })
+        .post(async(req, res) => {
+            //  First check that the id is valid, and that there actually is a deck with that id
+            let id   = undefined
+            let deck = undefined
+            try {
+                id   = validation.checkId(req.params.id)
+                deck = await decks.getDeckById(id)
+            }
+            catch(errorMessage) {
+                console.log("\n\ncould not get deck for matching game\n\n")
+                console.log(e)
+                res.sendStatus(500)
+                return;
+            }
+
+            const userInput = req.body.guessMatches
+            let error   = true
+            let correct = false
+
+            try {
+                validation.checkMatchingGameUserInput(userInput)
+                if(Math.ceil((tokens = userInput.replace(/,/g, " , ").trim().split(/\s+/)).length / 2) < deck.cards.length)
+                    throw "Not enough cards entered, try again."
+                else if(Math.ceil(tokens.length / 2) > deck.cards.length)
+                    throw "Too many cards entered, try again."
+                else {
+                    for(let i in deck.cards) {
+                        if((deck.cards[i]).back !== (shuffledCards[tokens[2 * i] - 1]).back)
+                            throw "Incorrect order, try again."
+                    }
+
+                    error   = false
+                    correct = true
+                    throw "Correct!"
+                }
+            }
+            catch(message) {
+                res.render(path.resolve('views/matchingGame.handlebars'),
+                            {id            : id,
+                             deckName      : deck.name,
+                             sortedCards   : deck.cards,
+                             shuffledCards : shuffledCards,
+                             userInputError: error,
+                             success       : correct,
+                             message       : message,
+                             userInput     : userInput
+                            }
+                          )
+            }
+        })
 
 module.exports = router;

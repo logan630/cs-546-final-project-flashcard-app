@@ -1,0 +1,14 @@
+<main>
+    <h1>{{deckName}}</h1>
+    <h2>{{subject}}</h2>
+    <h3>Created by: {{creatorName}} <br> on {{creationDate}}</h3>
+    <ol>
+    {{#each card}}
+        <li>{{this.front}} : {{this.back}}</li>
+    {{/each}}
+    </ol>
+
+        <form action="/protected/publicdecks/{{id}}" method="POST"><button type="submit">Save this public deck</button></form>
+        <a href="/protected/publicdecks">Return to public decks</a>
+
+</main>

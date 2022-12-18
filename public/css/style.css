@@ -62,8 +62,9 @@ p {
     text-align:center;
 }
 header {
-    color: var(--color-sky-blue);
-    font-size: 40px;
+    color: rgb(255,255,255);
+    font-size: 25px;
+    margin-left: 15px;
 }
 body {
     background-color: var(--bg-gray);
@@ -155,7 +156,12 @@ footer {
     left: 0;
     margin-bottom: 13px;
 }
-
+a {
+    color: rgb(255,255,255);
+}
+a :hover {
+    color: rgb(255,255,100);
+}
 nav {
     margin-top: 12px;
 }
@@ -323,4 +329,92 @@ nav a:hover, .login-homepage-buttons a:hover, .view-decks a:hover {
     flex-direction: column;
     justify-content: left;
     width: 100%;
+}
+
+[name="flashcardsEmpty_buttons"], [name="matchingGameEmpty_buttons"] {
+    text-align: center;
+}
+
+
+.flashcard-box {
+    position: middle;
+    border: blue;
+    border-style: solid;
+    border-width: 4px;
+}
+
+
+/*  Source: https://blog.hubspot.com/website/remove-underline-from-links-css  */
+
+.flashcard-arrow-button-left:link {
+    font-size: 90px;
+    text-decoration: none;
+    position: absolute;
+    left: 0;
+}
+
+.flashcard-arrow-button-left:visited {text-decoration: none;}
+.flashcard-arrow-button-left:hover   {text-decoration: none;}
+.flashcard-arrow-button-left:active  {text-decoration: none;}
+
+
+.flashcard-arrow-button-right:link {
+    font-size: 90px;
+    text-decoration: none;
+    position: absolute;
+    right: 0;
+}
+
+.flashcard-arrow-button-right:visited {text-decoration: none;}
+.flashcard-arrow-button-right:hover   {text-decoration: none;}
+.flashcard-arrow-button-right:active  {text-decoration: none;}
+
+/*   end source   */
+
+[name="match-span"] {
+    line-height: 1.3;
+}
+
+[name="match-form"] {
+    font-size: small;
+    position: absolute;
+    bottom: 0;
+}
+
+#match-fronts {
+    text-align: left;
+    position: absolute;
+    left: 0;
+}
+
+#match-backs {
+    text-align: right;
+    position: absolute;
+    right: 0;
+}
+
+.match-item {
+    font-size: 30px;
+    text-align: left;
+}
+
+.error {
+    color: red;
+    font-size: 30px;
+    font-style: italic;
+    font-weight: light;
+    text-align: center;
+}
+
+.success {
+    color: green;
+    font-size: 30px;
+    font-weight: bold;
+    text-align: center;
+}
+
+#correct-match-answer {
+    position: absolute;
+    bottom: 0;
+    margin-left: 625px;
 }

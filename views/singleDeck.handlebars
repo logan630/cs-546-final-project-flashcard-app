@@ -1,8 +1,7 @@
 <main>
-    <div class="titlecard-header">
-        <h1 id="deckName" class="deckName">{{deckName}}</h1>
-        <h2 id="deckSubject" class="deckSubject">{{subject}}</h2>
-    </div>
+    <header><br>Created on: {{dateCreated}}</header>
+    <h1 id="deckName" class="deckName">{{deckName}}</h1>
+    <h2 id="deckSubject" class="deckSubject">{{subject}}</h2>
     <p>Create a new card:</p> <br>
     <div id="error" class="error" hidden>{{errorMessage}}</div>
     <form action="/protected/decks" method="POST" id="create-card-form" class="create-card-form">
@@ -32,12 +31,19 @@
         {{/if}}
         <button type="submit">Update deck</button>
     </form>
+    <br>
+    <form action="/protected/decks/{{id}}/send" method="POST">
+        <label for="sendToAnotherUser">Send this deck to another user (by their name)</label>
+        <input id="sendToAnotherUser" type="text" name="sendToAnotherUser">
+        <button type="submit">Send</button>
+    </form>
     <nav>
         <div class="align-right">
             <button type="submit" class="delete-deck" id="delete-deck">Delete this deck</button>
         </div>
         
-        <a href="/decks/{{id}}/flashcards">Practice this deck with flashcards here!</a>
         <a href="/protected/decks">Back to your decks</a>
+        <a href="/protected/decks/{{id}}/flashcards">Practice this deck with flashcards!</a>
+        <a href="/protected/decks/{{id}}/matchingGame">Practice this deck with our matching game!</a>
     </nav>
 </main>

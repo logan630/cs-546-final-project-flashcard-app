@@ -1,0 +1,54 @@
+<main>
+    <h1 id="deckName" class="deckName">{{deckName}}: Matching Game</h1>
+
+    <span id="match-fronts">
+        <p>Fronts:</p>
+        <ol>
+            {{#each sortedCards}}
+                <li class="match-item">
+                    {{this.front}}
+                </li>
+            {{/each}}
+        </ol>
+    </span>
+
+    <span id="match-backs">
+        <p>Backs:</p>
+        <ol>
+            {{#each shuffledCards}}
+                <li class="match-item">
+                    {{this.back}}
+                </li>
+            {{/each}}
+        </ol>
+    </span>
+
+    <span name="match-span">
+        {{#if userInputError}}
+            <span class="error">
+                {{message}}
+            </span>
+
+            <form action="/protected/decks/{{id}}/matchingGame" method="POST" name="match-form">
+                <label for="guessMatches">
+                    Match each card's front side on the left with its corresponding back side on the right, using the numbering provided above
+                    (like drawing lines from the left side to the right side).
+                    Submit your answer in the form of a list of comma-separated numbers for the backs from top to bottom,
+                    like "3, 2, 5, 1, 4" or "2,4,3,1,". You should not have duplicates in your answer.
+                </label><br>
+                <input id="guessMatches" type="text" name="guessMatches" placeholder="1, 2, 3, 4"><br>
+                <button type="submit">Submit your answer</button>
+            </form>
+        {{else}} {{#if success}}
+            <span class="success">
+                {{message}}
+            </span>
+
+            <p id="correct-match-answer">{{userInput}}</p>
+        {{/if}} {{/if}}
+    </span>
+
+    <footer><nav>
+        <a href="/protected/decks/{{id}}">Back to this deck</a>
+    </nav></footer>
+</main>
