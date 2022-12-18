@@ -35,7 +35,7 @@ const createDeck = async (creator,deckName,subject,isPublic,cardsArray,dateCreat
         subject:subject,
         creatorId:user,
         public:isPublic,
-        cards: cards
+        cards:cards
     }
     if(typeof dateCreated!='undefined'){
         newDeck.dateCreated=dateCreated
@@ -223,7 +223,7 @@ const updateCard = async (id,oldFront,newFront,newBack) => {   //takes a deck id
 
 const getCardBack = async (id,front) => {       //takes a deck id and the front of a card. Returns the back of a card
     id=validation.checkId(id)
-    front=validation.checkCard(front,'front')
+    //front=validation.checkCard(front,'front')
     let deck=undefined;
     try{
         deck=await getDeckById(id)
@@ -236,7 +236,7 @@ const getCardBack = async (id,front) => {       //takes a deck id and the front 
             return item.back
         }
     }
-    throw `Card named ${front} not found`
+    //throw `Card named ${front} not found`
 }
 
 

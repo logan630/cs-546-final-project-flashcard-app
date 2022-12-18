@@ -7,6 +7,7 @@ const users=require('../data/users')
 const decks=require('../data/decks')
 const validation=require('../validation')
 const xss=require('xss')
+const { url } = require('inspector')
 
 router      
     .route('/decks')
@@ -33,7 +34,7 @@ router
             res.render(path.resolve('views/decks.handlebars'),{title:u,deck:yourDecks,userName:u})
         }
     })
-    .post(async (req,res) => {  // /decks post route (when you create a deck)
+    .post(async (req,res) => {  //          /decks post route (when you create a deck)
         if(!req.body){                  //if deck info request fails
             res.status(400)
             return
@@ -299,8 +300,9 @@ router
         catch(e){
             console.log(e)
         }
-        let oldFront=req.params.front
-        let back=await decks.getCardBack(id,oldFront)
+        let oldFront=req.url.substring(req.url.indexOf("/cards/")+7).replace(/%20/g," ")
+        let back=undefined
+        try{ back=await decks.getCardBack(id,oldFront)} catch(e) {console.log(e)}
         try{
             oldFront=validation.checkCard(oldFront,'front')
         }
@@ -326,7 +328,7 @@ router
         let front=xss(req.body.front)
         let back=xss(req.body.back)
         let deck=undefined
-        let oldFront=req.params.front
+        let oldFront=req.url.substring(req.url.indexOf("/cards/")+7).replace(/%20/g," ")
         try{
             front=validation.checkCard(front,'front')
             oldFront=validation.checkCard(oldFront,'front')
@@ -367,17 +369,18 @@ router
         }
     })
     .delete(async(req,res) => {             //  /decks/:id/cards/:front     delete route    (delete a card)
-        let id=xss(validation.checkId(req.params.id))
-        let front=xss(validation.checkCard(req.params.front,'front'))
-        try{
-            await decks.removeCard(id,front)
-        }
+        let id=(validation.checkId(req.params.id))
+        let front=req.url.substring(req.url.indexOf("/cards/")+7).replace(/%20/g," ")
+        let back=undefined
+        try{back=await decks.getCardBack(id,front)} catch(e){console.log(e)}
+        try{await decks.removeCard(id,front)}
         catch(e){
             console.log(e)
             res.json({
                 success:true,
                 error:e
             })
+            return
         }
         if(req.session.user){
             res.json({

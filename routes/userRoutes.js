@@ -106,7 +106,8 @@ router
     }
     else {
       req.session.destroy()
-      res.render(path.resolve('views/logout.handlebars'),{title:"Logged out"});
+      res.redirect('/')
+      //res.render(path.resolve('views/logout.handlebars'),{title:"Logged out"});
     }
   })
 

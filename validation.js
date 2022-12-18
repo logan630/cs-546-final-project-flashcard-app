@@ -62,9 +62,14 @@ function checkCard(contents,forb){          //it's forbin time
     if(!contents) throw new Error(`Card ${forb} is not defined`)
     if(typeof contents!=='string') throw `Card ${forb} contents is not a string`
     if(contents.trim().length<2) throw `Card ${forb} must be at least two characters`
-    contents=xss(contents.trim())
+    contents=(contents.trim())
     let maxLen=0
-    if(forb==='front') maxLen=frontLenMax
+    if((/[/\\]/).test(contents)) throw "Card cannot contain a / or \\"
+    if(forb==='front') {
+        if(!(/[^?]/).test(contents)) throw "Card front cannot be all question marks"
+        if((/[?./\\]]/).test(contents[0]) || contents[0]=='?') throw "Card front cannot start with a ? . \\ or /"
+        maxLen=frontLenMax
+    }
     else if(forb==='back') maxLen=backLenMax
     if(contents.length>maxLen) throw `Card ${forb} contents is longer than ${maxLen}`
     return contents
