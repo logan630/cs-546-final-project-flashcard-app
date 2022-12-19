@@ -3,11 +3,12 @@ const users = mongoCollections.users
 const userFunctions = require('./users');
 const validation = require('../validation');
 const {ObjectId} = require('mongodb');
+const { folders } = require('.');
 
 // Makes a new folder with name folderName for user with ID userID
 const createFolder = async (folderName, userID) => {
 
-    folderName = validation.checkDeckName(folderName);
+    folderName = validation.checkFolderName(folderName);
     userID = validation.checkId(userID.toString());
 
     // Check if the folder already exists
@@ -22,6 +23,7 @@ const createFolder = async (folderName, userID) => {
     // Create a new folder
 
     let newFolder = {         
+        _id: ObjectId().toString(), 
         name: folderName,
         decks: []
     }
@@ -39,16 +41,20 @@ const createFolder = async (folderName, userID) => {
 }
 
 // Deletes folder by folderID and userID
-const removeFolder = async (folderID, userID) => {      
+const removeFolder = async (folderID) => {      
 
     folderID = validation.checkId(folderID.toString());
-    userID = validation.checkId(userID.toString());
-
     const userCollection = await users();
-
+    const userID=await getUserIdByFolderId(folderID)
+    //const user=await userFunctions.getUserFromId(userID)
+    const folders=await getUsersFolders(userID.toString())
+    let folders2=folders.filter((folder) => {return folder._id.toString()!==folderID.toString()})
+    const updatedFolders = {
+        folders:folders2
+    }
     const updatedInfo = await userCollection.updateOne(
         {_id: ObjectId(userID)},
-        {$pull: {"folders": {_id: folderID}}}
+        {$set:updatedFolders}
     )
 
     if (updatedInfo.modifiedCount === 0) throw "Could not delete folder";
@@ -57,17 +63,31 @@ const removeFolder = async (folderID, userID) => {
 }
 
 // Updates folder of folderID (belonging to user with ID userID) with name newName
-const renameFolder = async (userID, folderID, newName) => {       
-
-    userID = validation.checkId(userID.toString());
+const renameFolder = async (folderID, newName) => {       
     folderID = validation.checkId(folderID.toString());
-    newName = validation.checkDeckName(newName);
+    let userID = await getUserIdByFolderId(folderID)
+    newName = validation.checkFolderName(newName);
 
     let userCollection = await users();
+    let updatedFolder = {
+        name:newName
+    }
+    let userFolders=await getUsersFolders(userID)
+    
+    let i=0
+    let found=false
+    for(i in userFolders){
+        if(userFolders[i]._id.toString()===folderID.toString()){
+            found=true
+            break
+        }
+    }
+    if(!found) throw `Cannot find card with that name`
+    userFolders[i].name=newName
 
     const updatedInfo = await userCollection.updateOne(
-        {_id: ObjectId(userID), "folders._id": ObjectId(folderID)},
-        {$set: {"folder.$.name": newName}}
+        {_id: ObjectId(userID)},
+        {$set: userFolders}
     )
 
     if (updatedInfo.modifiedCount === 0) throw "Could not successfully rename folder";
@@ -82,8 +102,15 @@ const getFolderById = async (userID, folderID) => {
     folderID = validation.checkId(folderID.toString());
 
     const userCollection = await users();
+    const thatUser=await userFunctions.getUserFromId(userID)
 
-    const folder = await userCollection.aggregate([
+    for(folder of thatUser.folders){
+        if(folder._id.toString()===folderID.toString()){
+            return folder
+        }
+    }
+    throw new Error(`Could not find folder with ID of ${folderID}`);
+    /*const folder = await userCollection.aggregate([
 
         {"$match": {_id: ObjectId(userID)}},
 
@@ -96,7 +123,7 @@ const getFolderById = async (userID, folderID) => {
 
     if (!folder) throw new Error(`Could not find folder with ID of ${folderID}`);
 
-    return folder;
+    return folder;*/
 }
 
 // Retrieves a userID given a folderID
@@ -106,23 +133,34 @@ const getUserIdByFolderId = async (folderID) => {
 
     const userCollection = await users();
 
-    const userFound = await userCollection.find(
+    let allUsers=await userFunctions.getAllUsers()
+    for(user of allUsers){
+        for(folder of user.folders){
+            
+            if(folder._id.toString()===folderID.toString()){
+                return user._id;
+            }
+        }
+    }
+    throw new Error(`Could not find user with folder of ID ${folderID}`)
+    /*const userFound = await userCollection.find(
         {"_id": {
             "$in": userCollection.distinct("folders._id", {"_id": ObjectId(folderID)})
         }}
     )
+    //console.dir({data: userFound}, {depth:null})
 
     if (!userFound) throw new Error(`Could not find user with folder of ID ${folderID}`);
 
     userID = userFound._id;
 
-    return userID;
+    return userID;*/
 }
 
 // Retrieves an array of all the folders belonging to user with ID userID
 const getUsersFolders = async(userID) => {  
 
-    userID = validation.checkId(userID);
+    userID = validation.checkId(userID).toString();
 
     const userCollection = await users();
     const tempUser = await userCollection.findOne({_id: ObjectId(userID)}); 

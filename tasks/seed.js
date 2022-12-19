@@ -2,6 +2,7 @@ const dbConnection = require('../config/mongoConnection');
 const data=require('../data')
 const users=data.users
 const decks=data.decks
+const folders=data.folders
 const validation=require('../validation')
 //warning: This file contains several corny refrences to things that I (Daniel) like. It was also written between 4 amd 8 am the day the project was due
 async function main() {
@@ -9,13 +10,21 @@ async function main() {
     await db.dropDatabase();
     console.log("Login credentials are given in the seed file. In the 'createUser' function, the first parameter is the username, and the second parameter is the password")
     //users
-    try{const user1=await users.createUser("user1","1ASSword!")}catch(e){console.log(e)}
-    try{const user2=await users.createUser("UseR2","Pass9(")}catch(e){console.log(e)}
-    try{const Daniel=await users.createUser("Daniel","Class0)")}catch(e){console.log(e)}
-    try{const Moxxie=await users.createUser("Moxxie","Imps9(")}catch(e){console.log(e)}
-    //try{const Millie=await users.createUser("Millie","Sheimp0)")}catch(e){console.log(e)}
-    try{const Retsuko=await users.createUser("Retsuko","Ha1da!")}catch(e){console.log(e)}
-    try{const Chidi=await users.createUser("Chidi","Anagony3!")} catch(e){console.log(e)}
+    let user1=undefined; let user2=undefined; let Daniel=undefined; let Moxxie=undefined; let Restuko=undefined; let Chidi=undefined;
+    try{user1=await users.createUser("user1","1ASSword!")}catch(e){console.log(e)}
+    try{user2=await users.createUser("UseR2","Pass9(")}catch(e){console.log(e)}
+    try{Daniel=await users.createUser("Daniel","Class0)")}catch(e){console.log(e)}
+    try{Moxxie=await users.createUser("Moxxie","Imps9(")}catch(e){console.log(e)}
+    //try{Millie=await users.createUser("Millie","Sheimp0)")}catch(e){console.log(e)}
+    try{Retsuko=await users.createUser("Retsuko","Ha1da!")}catch(e){console.log(e)}
+    try{Chidi=await users.createUser("Chidi","Anagony3!")} catch(e){console.log(e)}
+    let user1id=await users.getUserIdFromName("user1");
+    let user2id=await users.getUserIdFromName("user2");
+    let Danielid=await users.getUserIdFromName("Daniel");
+    let Moxxieid=await users.getUserIdFromName("Moxxie");
+    let Retsukoid=await users.getUserIdFromName("Retsuko");
+    let Chidiid=await users.getUserIdFromName("chidi");
+
     //decks
     try{await decks.createDeck("user1","My first deck","Nothing",true,[
         {front:"I am a new user",back:"How may I help you?"},
@@ -188,6 +197,10 @@ async function main() {
         {front:"The Good Place",back:"The Bad Place"}
     ])}catch(e){console.log(e)}
     try{await decks.createDeck("Chidi","Empty Deck","Nothing",true,[])}catch(e){console.log(e)}
+    //folders
+    try{await folders.createFolder("My stuff",Danielid) }catch(e){console.log(e)}
+    try{await folders.createFolder("My stuff2",Danielid) }catch(e){console.log(e)}
+
     console.log("Done seeding database")
     await dbConnection.closeConnection();
 }

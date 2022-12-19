@@ -30,6 +30,15 @@
     let newDeckPublicity=$('#isDeckPublic')
     //deleting decks
     let deleteDeckButton=$('#delete-deck')
+    //creating folders
+    let createFolderForm=$('#create-folder-form')
+    let folderNameInput=$('#foldernameInput')
+    let folderList=$('#folder-list')
+    //editing folders
+    let editFolderForm=$('#edit-folder-form')
+    let editFolderName=$('#newFolderName')
+    //deleting folders
+    let deleteFolderButton=$('#delete-folder')
     //errors
     let errorDiv=document.getElementById('error')
     let errorDiv2=document.getElementById('error2') //error for submitting a bad deck name (renaming)
@@ -276,6 +285,81 @@
             if(responseMessage.success){
                 alert("Deck successfully deleted")
                 window.location.href='/protected/decks'
+            }
+            else{
+                alert(responseMessage.error)
+            }
+        })
+    })
+    //for creating a folder
+    createFolderForm.submit(function (event) {
+        event.preventDefault();
+        if(folderNameInput.val()){
+            let requestConfig = {
+                method: "POST",
+                url:"/protected/folders",
+                contentType:"application/json",
+                data: JSON.stringify({name:folderNameInput.val()})
+            }
+            $.ajax(requestConfig).then(function (responseMessage) {
+                let id=responseMessage.id
+                if(responseMessage.success){
+                    errorDiv.hidden=true
+                    const listItem = `<li> <a href=folders/${id}">${folderNameInput.val()}</a></li>`
+                    folderList.append(listItem)
+                }
+                else{
+                    errorDiv.hidden=false
+                    errorDiv.innherHTML=responseMessage.error
+                    frmLabel=className='error'
+                    folderNameInput.focus();
+                }
+                $('#create-folder-form').trigger('reset')
+
+            })
+        }
+    })
+    //for editing a folder
+    editFolderForm.submit(function (event) {
+        event.preventDefault()
+        if(editFolderName.val()){
+            let url=window.location.href.substring(window.location.href.indexOf("/protected"))
+            let requestConfig={
+                method:"PATCH",
+                url:url,
+                contentType: "application/json",
+                data: JSON.stringify({name:editFolderName.val()})
+            }
+            $.ajax(requestConfig).then(function (responseMessage) {
+                if(responseMessage.success){
+                    errorDiv2.hidden=true
+                    $('#folderName').replaceWith(`<h1 id="folderName" class="deckName"${editFolderName.val()}</h1>`)
+                }
+                else{
+                    errorDiv2.hidden=false
+                    errorDiv2.innerHTML=responseMessage.error
+                    frmLabel=className='error2'
+                    editFolderName.focus()
+                }
+                $('#edit-folder-form').trigger('reset')
+            })
+        }
+    })
+    //for deleting a folder
+    deleteFolderButton.on('click', function(event) {
+        event.preventDefault()
+        let url=window.location.href.substring(window.location.href.indexOf("/protected"))
+        let id=url.substring(url.indexOf("/folders/")+9)
+        let requestConfig = {
+            method: "DELETE",
+            url: url,
+            contentType:"application/json",
+            data: JSON.stringify({id:id})
+        }
+        $.ajax(requestConfig).then(function (responseMessage) {
+            if(responseMessage.success){
+                alert("Folder successfully deleted")
+                window.location.href='/protected/folders'
             }
             else{
                 alert(responseMessage.error)
