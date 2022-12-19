@@ -1,0 +1,58 @@
+[{
+  "_id": {
+    "$oid": "639fd9a66bd334ed16dc4e0d"
+  },
+  "username": "user1",
+  "password": "$2a$11$8OrhnyWAUhp7q5SONxB9OuDHpAa.WbPPUzFV1yYKO8/C.A/RJlOfq",
+  "folders": []
+},{
+  "_id": {
+    "$oid": "639fd9a76bd334ed16dc4e0e"
+  },
+  "username": "user2",
+  "password": "$2a$11$3XK1WAKjiFf6lDtl.iR0xONIb2ZArfLqypDQe6hHEyXVbjvZ7WQPK",
+  "folders": []
+},{
+  "_id": {
+    "$oid": "639fd9a76bd334ed16dc4e0f"
+  },
+  "username": "daniel",
+  "password": "$2a$11$PDVbFtMvcMAUjTRfAVIvb.B0Vrj8Trpuyd3Zt1mT1XqR1XFWjko9G",
+  "folders": [
+    {
+      "_id": "639fd9a86bd334ed16dc4e27",
+      "name": "My stuff",
+      "decks": [
+        "639fd9a86bd334ed16dc4e1a",
+        "639fd9a86bd334ed16dc4e1c",
+        "639fd9a86bd334ed16dc4e20"
+      ]
+    },
+    {
+      "_id": "639fd9a86bd334ed16dc4e28",
+      "name": "My stuff2",
+      "decks": []
+    }
+  ]
+},{
+  "_id": {
+    "$oid": "639fd9a76bd334ed16dc4e10"
+  },
+  "username": "moxxie",
+  "password": "$2a$11$mNQ.GunJqB3jVkiUZTYtl./dyOWa5T3PQTBqiZnMXrm1/Cwp55Q6y",
+  "folders": []
+},{
+  "_id": {
+    "$oid": "639fd9a86bd334ed16dc4e11"
+  },
+  "username": "retsuko",
+  "password": "$2a$11$PQrL.x5VjHGLkXRUfI5xNOlxs42wyBl.37Crdk9Rgvr8llhixdvUe",
+  "folders": []
+},{
+  "_id": {
+    "$oid": "639fd9a86bd334ed16dc4e12"
+  },
+  "username": "chidi",
+  "password": "$2a$11$Rh6vYoK..qGveMGTOqQBruQUnCagGF14r0hjWL/NBWran5e33zEiW",
+  "folders": []
+}]
