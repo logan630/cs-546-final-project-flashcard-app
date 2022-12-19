@@ -135,6 +135,10 @@ label {
     font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
+li {
+    color:white;
+}
+
 h1 {
     text-align: center;
     color: white;
@@ -147,6 +151,16 @@ h2 {
     color: white;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     font-size: 40px;
+}
+
+h3 {
+    font-size:24px;
+    margin-left: 20px;
+    color:rgb(255,255,200);
+}
+
+button {
+    font-size: 20px;
 }
 
 .entry-button-container {

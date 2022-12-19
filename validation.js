@@ -15,6 +15,16 @@ function checkDeckName(deckName){
     return deckName
 }
 
+function checkFolderName(folderName){
+    if(!folderName) throw new Error("folder name is not defined")
+    if(typeof folderName!=='string') throw "folder name must be a string"
+    if(folderName.trim().length===0) throw "folder name cannot be empty spaces"
+    folderName=xss(folderName.trim())
+    if(folderName.length>deckNameLenMax) throw `folder name cannot be longer than ${deckNameLenMax} characters`
+    if(folderName.length<=1) throw "folder name must be at least 2 characters"
+    return folderName
+}
+
 const checkUsername = (username) => {
     if(!username) throw ("You must supply a username")
     if(typeof username!=='string') throw "Username must be a string"
@@ -102,6 +112,7 @@ module.exports = {
     checkUsername,
     checkPassword,
     checkDeckName,
+    checkFolderName,
     checkSubject,
     checkId,
     checkCard,

@@ -1,0 +1,28 @@
+<main>
+    <div class="titlecard-header">
+        <h1 class="title">{{userName}}'s Folders</h1>
+    </div>
+    <div id="error" class="error" hidden>{{errorMessage}}</div>
+    <div class="deck-page-content">
+        <div class="deck-page-column">
+            <h2>Create a new folder</h2>
+            <form action="/protected/folders" method="POST" id="create-folder-form" class="create-deck-form">
+            <label for="foldernameInput">Folder name:<input id="foldernameInput" type="text" name="foldernameInput"></label>
+            <button type="submit" class="submit-button">Create folder</button>
+            </form>
+        </div>
+        <div class="spacer"></div>
+        <div class="deck-page-column">
+            <h2>My folders</h2>
+            <ol id="folder-list" class="deck-list">
+                {{#each folder}}
+                    <li><a href="folders/{{this._id}}">{{this.name}}</a></li>
+                {{/each}}
+            </ol>
+        </div>
+    </div>
+    <footer>
+        <a href="/protected">Back to your profile</a> <br>
+        <a href="/protected/publicdecks">Browse public decks</a>
+    </footer>
+</main>

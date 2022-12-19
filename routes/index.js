@@ -2,6 +2,7 @@
 const userRoutes=require('./userRoutes')
 const deckRoutes=require('./deckRoutes')
 const publicDeckRoutes=require('./publicDeckRoutes')
+const folderRoutes=require('./folderRoutes')
 const path=require('path')
 
 const constructorMethod = (app) => {
@@ -9,6 +10,7 @@ const constructorMethod = (app) => {
         res.sendFile(path.resolve('static/homepage.html'));
       });*/
     app.use('/',userRoutes);
+    app.use('/protected/folders',folderRoutes)
     app.use('/protected',deckRoutes)
     app.use('/browsepublicdecks',publicDeckRoutes)
     app.use('*',(req,res) => {
