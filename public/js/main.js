@@ -260,7 +260,7 @@
                 if(responseMessage.success){
                     errorDiv2.hidden=true
                     $('#deckName').replaceWith(`<h1 id="deckName" class="deckName">${deckNewName}</h1>`)   //updates deck name at top of page
-                    $('#deckSubject').replaceWith(`<h2 id="deckSubject" class="deckSubject">${deckNewSubject}</h2>`)
+                    $('#deckSubject').replaceWith(`<h2 id="deckSubject" class="deckSubject">${JSON.stringify(deckNewSubject)}</h2>`)
                 }
                 else{
                     errorDiv2.hidden=false

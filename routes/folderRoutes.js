@@ -115,7 +115,7 @@ router
         let id=validation.checkId(req.params.id)
         let newFolderName=req.body.name;
         try{
-            newFolderName=validation.checkFolderName(newFolderName)
+            newFolderName=xss(validation.checkFolderName(newFolderName))
             await folders.renameFolder(id.toString(),newFolderName)
         }
         catch(e){
@@ -123,7 +123,7 @@ router
             res.json({
                 title:"Error renaming folder",
                 id:undefined,
-                folderName:newFolderName,
+                folderName:xss(newFolderName),
                 success:false,
                 error:e.toString()
             })
@@ -133,7 +133,7 @@ router
         res.json({
             title:newFolderName,
             id:id,
-            folderName:newFolderName,
+            folderName:xss(newFolderName),
             success:true,
             error:undefined
         })

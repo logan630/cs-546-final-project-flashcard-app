@@ -4,11 +4,12 @@ const userFunctions = require('./users');
 const validation = require('../validation');
 const {ObjectId, UnorderedBulkOperation, ObjectID} = require('mongodb');
 const { folders } = require('.');
+const xss=require('xss')
 
 // Makes a new folder with name folderName for user with ID userID
 const createFolder = async (folderName, userID) => {
 
-    folderName = validation.checkFolderName(folderName);
+    folderName = xss(validation.checkFolderName(folderName));
     userID = validation.checkId(userID.toString());
 
     // Check if the folder already exists
@@ -64,11 +65,11 @@ const removeFolder = async (folderID) => {
 
 // Updates folder of folderID (belonging to user with ID userID) with name newName
 const renameFolder = async (folderID, newName) => {       
-    folderID = validation.checkId(folderID.toString());
+    folderID = xss(validation.checkId(folderID.toString()));
     let userID = await getUserIdByFolderId(folderID)
     //userID=userID.toString()
     console.log(userID.toString())
-    newName = validation.checkFolderName(newName);
+    newName = xss(validation.checkFolderName(newName));
     let user=await userFunctions.getUserFromId(userID.toString())
     let userCollection = await users();
     let userFolders=await getUsersFolders(userID.toString())
