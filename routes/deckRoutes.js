@@ -390,7 +390,7 @@ router
     })
 
 
-
+let correctFlashcards = undefined
 
 router
     .route('/decks/:id/flashcards')
@@ -404,17 +404,41 @@ router
         }
         catch(errorMessage) {
             console.log("\n\ncould not get deck for flashcards\n\n")
-            console.log(e)
+            console.log(errorMessage)
             res.sendStatus(500)
             return;
+        }
+        
+        let thisUser = undefined
+        try{thisUser = await users.getUserFromName(req.session.user.username)}
+        catch(errorMessage){console.log(errorMessage)}
+        let non_whitelisted_cards = []
+        let hasWhitelist = false
+
+        for(let i in (W = thisUser.cards_whitelist)) {
+            if(W[i].deckID) {
+                for(let j in deck.cards) {
+                    if(!(W[i].deckID.includes(j)))
+                        non_whitelisted_cards.push(deck.cards[j]);
+                }
+                hasWhitelist = true
+                break
+            }
+        }
+
+        if(!hasWhitelist) {
+            for(let i in deck.cards)
+                non_whitelisted_cards.push(deck.cards[i])
         }
 
         if(!req.session.user)   //  if the user is not logged in, redirect to the homepage
             res.redirect("/")
-        else if(deck.cards.length === 0)   //  if the deck has no cards, display a page that tells the user this
+        else if(non_whitelisted_cards.length === 0)   //  if the non-whitelisted deck has no cards, display a page that tells the user this
             res.render(path.resolve('views/flashcards_empty.handlebars'), {id: id})
-        else    //  an authenticated user will initially see the front of the first flashcard of a non-empty deck
+        else {    //  an authenticated user will initially see the front of the first flashcard of a non-empty deck
+            correctFlashcards = 0
             res.redirect(`/protected/decks/${id}/flashcards/${req.params.cardNumber = 0}/front`)
+        }
     })
 
 
@@ -423,22 +447,43 @@ router
     .route('/decks/:id/flashcards/:cardNumber/front')
     .get(async(req, res) => {
         //  First check that the id is valid, and that there actually is a deck with that id
-        let id   = undefined
-        let deck = undefined
+        let deckID = undefined
+        let deck   = undefined
         try {
-            id   = validation.checkId(req.params.id)
-            deck = await decks.getDeckById(id)
+            deckID = validation.checkId(req.params.id)
+            deck   = await decks.getDeckById(deckID)
         }
         catch(errorMessage) {
             console.log("\n\ncould not get deck for flashcards\n\n")
-            console.log(e)
+            console.log(errorMessage)
             res.sendStatus(500)
             return;
         }
 
-        let cardNumber = req.params.cardNumber
+        let thisUser = undefined
+        try{thisUser = await users.getUserFromName(req.session.user.username)}
+        catch(errorMessage){console.log(errorMessage)}
+        let cardNumber = +(req.params.cardNumber)
+        let non_whitelisted_cards = []
+        let hasWhitelist = false
 
-        if(cardNumber < 0 || cardNumber % 1 !== 0 || cardNumber.toString().includes(".") || cardNumber >= deck.cards.length) {
+        for(let i in (W = thisUser.cards_whitelist)) {
+            if(W[i].deckID) {
+                for(let j in deck.cards) {
+                    if(!(W[i].deckID.includes(j)))
+                        non_whitelisted_cards.push(deck.cards[j]);
+                }
+                hasWhitelist = true
+                break
+            }
+        }
+
+        if(!hasWhitelist) {
+            for(let i in deck.cards)
+                non_whitelisted_cards.push(deck.cards[i])
+        }
+
+        if((cardNumber < 0) || (cardNumber % 1 !== 0) || cardNumber.toString().includes(".") || (cardNumber >= non_whitelisted_cards.length)) {
             console.log("\n\ninvalid flashcard number\n\n")
             res.json({errorMessage: "Invalid flashcard number"})
             return;
@@ -447,9 +492,9 @@ router
             res.redirect("/")
         else {  //  otherwise, display the back of the cardNumber-th card
             res.render(path.resolve('views/flashcard_front.handlebars'),
-                       {id        : id,
+                       {deckID    : deckID,
                         deckName  : deck.name,
-                        frontText : deck.cards[cardNumber].front,
+                        frontText : non_whitelisted_cards[cardNumber].front,
                         cardNumber: cardNumber
                        }
                       )
@@ -457,43 +502,160 @@ router
     })
 
 
-
 router
     .route('/decks/:id/flashcards/:cardNumber/back')
     .get(async(req, res) => {
-        //  First check that the id is valid, and that there actually is a deck with that id
-        let id   = undefined
-        let deck = undefined
+        //  First check that the deckID is valid, and that there actually is a deck with that id
+        let deckID = undefined
+        let deck   = undefined
         try {
-            id   = validation.checkId(req.params.id)
-            deck = await decks.getDeckById(id)
+            deckID = validation.checkId(req.params.id)
+            deck   = await decks.getDeckById(deckID)
         }
         catch(errorMessage) {
             console.log("\n\ncould not get deck for flashcards\n\n")
-            console.log(e)
+            console.log(errorMessage)
             res.sendStatus(500)
             return;
         }
 
-        let cardNumber = req.params.cardNumber
+        let thisUser = undefined
+        try{thisUser = await users.getUserFromName(req.session.user.username)}
+        catch(errorMessage){console.log(errorMessage)}
+        let cardNumber = +(req.params.cardNumber)
+        let non_whitelisted_cards = []
+        let hasWhitelist = false
 
-        if(cardNumber < 0 || cardNumber % 1 !== 0 || cardNumber.toString().includes(".") || cardNumber >= deck.cards.length) {
+        for(let i in (W = thisUser.cards_whitelist)) {
+            if(W[i].deckID) {
+                for(let j in deck.cards) {
+                    if(!(W[i].deckID.includes(j)))
+                        non_whitelisted_cards.push(deck.cards[j]);
+                }
+                hasWhitelist = true
+                break
+            }
+        }
+
+        if(!hasWhitelist) {
+            for(let i in deck.cards)
+                non_whitelisted_cards.push(deck.cards[i])
+        }
+
+        if((cardNumber < 0) || (cardNumber % 1 !== 0) || cardNumber.toString().includes(".") || (cardNumber >= non_whitelisted_cards.length)) {
             console.log("\n\ninvalid flashcard number\n\n")
             res.json({errorMessage: "Invalid flashcard number"})
             return;
         }
         else if(!req.session.user)   //  if the user is not logged in, redirect to the homepage
             res.redirect("/")
-        else {  //  otherwise, display the back of the cardNumber-th card
+        else  //  otherwise, display the back of the cardNumber-th card
             res.render(path.resolve('views/flashcard_back.handlebars'),
-                       {id                : id,
+                       {deckID            : deckID,
                         deckName          : deck.name,
-                        backText          : deck.cards[cardNumber].back,
+                        backText          : non_whitelisted_cards[cardNumber].back,
                         cardNumber        : cardNumber,
-                        previousCardNumber: cardNumber - 1,
-                        nextCardNumber    : +cardNumber + 1,
-                        isFirstCard       : (+cardNumber === 0),
-                        isLastCard        : (+cardNumber === deck.cards.length - 1)
+                        nextCardNumber    : cardNumber + 1,
+                        isLastCard        : (cardNumber === non_whitelisted_cards.length - 1)
+                       }
+                      )
+    })
+    .post(async(req, res) => {
+        //  req.body will have up to two of these keys in this format:
+        //      {isCorrect   : "Yes",
+        //       markedAsDone: "on"
+        //      }
+        const {isCorrect, markedAsDone} = req.body
+
+        let deckID = undefined
+        let deck   = undefined
+        try {
+            deckID = validation.checkId(req.params.id)
+            deck   = await decks.getDeckById(deckID)
+        }
+        catch(errorMessage) {
+            console.log("\n\ncould not get deck for flashcards\n\n")
+            console.log(errorMessage)
+            res.sendStatus(500)
+            return;
+        }
+
+        let thisUser = undefined
+        try{thisUser = await users.getUserFromName(req.session.user.username)}
+        catch(errorMessage){console.log(errorMessage)}
+
+        let   cardNumber             = +(req.params.cardNumber)
+        let   non_whitelisted_cards  = []
+        let   hasWhitelist           = false
+        let   whitelist_object_index = undefined
+        const W                      = thisUser.cards_whitelist
+
+        console.log(thisUser)
+
+        for(let i in W) {
+            if(W[i][deckID]) {
+                hasWhitelist = true
+                whitelist_object_index = i
+                for(let j in deck.cards) {
+                    if(!(W[i].deckID.includes(j)))
+                        non_whitelisted_cards.push(deck.cards[j]);
+                }
+                break
+            }
+        }
+
+        if(!hasWhitelist) {
+            for(let i in deck.cards)
+                non_whitelisted_cards.push(deck.cards[i])
+        }
+
+        if((cardNumber < 0) || (cardNumber % 1 !== 0) || cardNumber.toString().includes(".") || (cardNumber >= non_whitelisted_cards.length)) {
+            console.log("\n\ninvalid flashcard number\n\n")
+            res.json({errorMessage: "Invalid flashcard number"})
+            return;
+        }
+        else if(!req.session.user)   //  if the user is not logged in, redirect to the homepage
+            res.redirect("/")
+        else if(!isCorrect) {
+            cardNumber--
+            res.render(path.resolve('views/flashcard_back.handlebars'),
+                       {deckID            : deckID,
+                        deckName          : deck.name,
+                        backText          : non_whitelisted_cards[cardNumber].back,
+                        cardNumber        : cardNumber,
+                        nextCardNumber    : ++cardNumber,
+                        isLastCard        : (cardNumber === non_whitelisted_cards.length - 1),
+                        error             : true
+                       }
+                      )
+        }
+        else {
+            if(isCorrect === "Yes")
+                correctFlashcards++
+                                        
+            // if(markedAsDone) {
+            //     if(hasWhitelist) {
+            //         console.log("here")
+            //         console.log(W[whitelist_object_index][deckID])
+            //         thisUser.cards_whitelist[whitelist_object_index][deckID].push(cardNumber - 1)
+            //         console.log(W[whitelist_object_index])
+            //     }
+            //     else {
+            //         const newObject = {}
+            //         newObject[deckID] = [cardNumber - 1]
+            //         thisUser.cards_whitelist.push(newObject)
+            //     }
+            // }
+
+            console.log(thisUser.cards_whitelist[0])
+
+            res.render(path.resolve('views/flashcard_front.handlebars'),
+                       {deckID            : deckID,
+                        deckName          : deck.name,
+                        frontText         : non_whitelisted_cards[cardNumber].front,
+                        cardNumber        : cardNumber,
+                        nextCardNumber    : ++cardNumber,
+                        isLastCard        : (cardNumber === non_whitelisted_cards.length - 1),
                        }
                       )
         }
@@ -655,6 +817,11 @@ router
                 else if(Math.ceil(tokens.length / 2) > deck.cards.length)
                     throw "Too many cards entered, try again."
                 else {
+                    for(let i in deck.cards) {
+                        if(tokens[2 * i] > shuffledCards.length)
+                            throw `"${tokens[2 * i]}" is too large of a number for this deck, try again.`
+                    }
+                    
                     for(let i in deck.cards) {
                         if((deck.cards[i]).back !== (shuffledCards[tokens[2 * i] - 1]).back)
                             throw "Incorrect order, try again."

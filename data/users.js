@@ -17,9 +17,14 @@ const createUser = async (      //checks if user submitted valid credentials whe
     password=validation.checkPassword(password);
     const hashed_pw=await bcrypt.hash(password.toString(),saltRounds)
     let newUser= {
-      username: username,
-      password: hashed_pw,
-      folders: []
+      username       : username,
+      password       : hashed_pw,
+      folders        : [],
+
+      //  An array of objects with a key of the id of a deck that the user owns, and a value of the list of cards from that deck
+      //  (as a list of positive integers, since cards are always in order of first created) that the user wants to omit (whitelist) from
+      //  their flashcard stuying. If a user has not whitelisted any cards in one of their folders, this is not included in this subdocument at all.
+      cards_whitelist: []
     }
     const insertUser=await userCollection.insertOne(newUser);
     if(!insertUser.acknowledged || !insertUser.insertedId)

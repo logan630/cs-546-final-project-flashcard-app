@@ -346,28 +346,16 @@ nav a:hover, .login-homepage-buttons a:hover, .view-decks a:hover {
 
 /*  Source: https://blog.hubspot.com/website/remove-underline-from-links-css  */
 
-.flashcard-arrow-button-left:link {
-    font-size: 90px;
-    text-decoration: none;
-    position: absolute;
-    left: 0;
-}
-
-.flashcard-arrow-button-left:visited {text-decoration: none;}
-.flashcard-arrow-button-left:hover   {text-decoration: none;}
-.flashcard-arrow-button-left:active  {text-decoration: none;}
-
-
-.flashcard-arrow-button-right:link {
+#flashcard-right-arrow-button:link {
     font-size: 90px;
     text-decoration: none;
     position: absolute;
     right: 0;
 }
 
-.flashcard-arrow-button-right:visited {text-decoration: none;}
-.flashcard-arrow-button-right:hover   {text-decoration: none;}
-.flashcard-arrow-button-right:active  {text-decoration: none;}
+#flashcard-right-arrow-button:visited {text-decoration: none;}
+#flashcard-right-arrow-button:hover   {text-decoration: none;}
+#flashcard-right-arrow-button:active  {text-decoration: none;}
 
 /*   end source   */
 
