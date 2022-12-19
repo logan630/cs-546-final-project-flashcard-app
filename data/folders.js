@@ -66,33 +66,40 @@ const removeFolder = async (folderID) => {
 const renameFolder = async (folderID, newName) => {       
     folderID = validation.checkId(folderID.toString());
     let userID = await getUserIdByFolderId(folderID)
+    //userID=userID.toString()
+    console.log(userID.toString())
     newName = validation.checkFolderName(newName);
-
+    let user=await userFunctions.getUserFromId(userID.toString())
     let userCollection = await users();
-    let updatedFolder = {
-        name:newName
-    }
-    let userFolders=await getUsersFolders(userID)
-    
+    let userFolders=await getUsersFolders(userID.toString())
+    let folder = await getFolderById(userID, folderID)
     let i=0
-    let found=false
     for(i in userFolders){
         if(userFolders[i]._id.toString()===folderID.toString()){
             found=true
             break
         }
     }
-    if(!found) throw `Cannot find card with that name`
-    userFolders[i].name=newName
+    let newFolder={
+        _id: folder._id,
+        name:newName,
+        decks:folder.decks
+    }
+    let userFolders2=userFolders
+    userFolders2[i]=newFolder
+    let updatedUser = {
+        password:user.password,
+        folders:userFolders2
+    }
 
     const updatedInfo = await userCollection.updateOne(
         {_id: ObjectId(userID)},
-        {$set: userFolders}
+        {$set: updatedUser}
     )
 
     if (updatedInfo.modifiedCount === 0) throw "Could not successfully rename folder";
 
-    return await getFolderById(folderID);
+    return await getFolderById(userID, folderID);
 }
 
 // Retrieves a folder object (given a folderID) that belongs to user with ID userID
@@ -160,7 +167,7 @@ const getUserIdByFolderId = async (folderID) => {
 // Retrieves an array of all the folders belonging to user with ID userID
 const getUsersFolders = async(userID) => {  
 
-    userID = validation.checkId(userID).toString();
+    userID = validation.checkId(userID.toString());
 
     const userCollection = await users();
     const tempUser = await userCollection.findOne({_id: ObjectId(userID)}); 

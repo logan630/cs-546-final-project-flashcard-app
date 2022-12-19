@@ -305,7 +305,7 @@
                 let id=responseMessage.id
                 if(responseMessage.success){
                     errorDiv.hidden=true
-                    const listItem = `<li> <a href=folders/${id}">${folderNameInput.val()}</a></li>`
+                    const listItem = `<li> <a href=folders/${id}>${folderNameInput.val()}</a></li>`
                     folderList.append(listItem)
                 }
                 else{
@@ -333,7 +333,7 @@
             $.ajax(requestConfig).then(function (responseMessage) {
                 if(responseMessage.success){
                     errorDiv2.hidden=true
-                    $('#folderName').replaceWith(`<h1 id="folderName" class="deckName"${editFolderName.val()}</h1>`)
+                    $('#folderName').replaceWith(`<h1 id="folderName" class="deckName">${editFolderName.val()}</h1>`)
                 }
                 else{
                     errorDiv2.hidden=false
