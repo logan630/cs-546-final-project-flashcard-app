@@ -102,7 +102,7 @@ async function main() {
         {front:"All Time Low",back:"A Love Like War"},
         {front:"Fall Out Boy",back:"Centuries, Thnks fr th Mmrs, Light Em Up"},
         {front:"The Offspring",back:"Let The Bad Times Roll, The Kids Aren't Alright, Self Esteem"}
-    ])).toString()}catch(e){console.log(e)}
+    ])).insertedId.toString()}catch(e){console.log(e)}
     try{await decks.createDeck("Daniel","Songs 2","Songs I like",true,[
         {front:"Panic! At the Disco",back:"High Hopes, Saturday Night"},
         {front:"Fister the People",back:"Sit Next to me"},
@@ -119,7 +119,7 @@ async function main() {
         {front:"CS 516",back:"Compiler Design and Implementation"},
         {front:"CS 492",back:"Operating Systems"},
         {front:"CS 677",back:"Parallel Programming for many-core processors"}
-    ])).toString()}catch(e){console.log(e)}
+    ])).insertedId.toString()}catch(e){console.log(e)}
     try{await decks.createDeck("Daniel","Long deck 1","pants",false,[
         {front:"01",back:"AB"},
         {front:"CD",back:"EF"},
@@ -160,7 +160,7 @@ async function main() {
         {front:"Europe",back:"Italy, France, Spain"},
         {front:"Caribbean",back:"Jamaica, Puerto Rico, St. Thomas, St. Maarten, St. Lucia, Barbados, Bermuda"},
         {front:"Mexico",back:"Cozumel, Xcaret"}
-    ])).toString()}catch(e){console.log(e)}
+    ])).insertedId.toString()}catch(e){console.log(e)}
     try{await decks.createDeck("Moxxie","Helluva Nonsense","Random Trivia",false,[
         {front:"Moxxie's wife",back:"Millie"},
         {front:"Who does Stolas hate the most?",back:"Stella"},
