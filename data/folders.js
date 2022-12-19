@@ -2,13 +2,14 @@ const mongoCollections = require('../config/mongoCollections');
 const users = mongoCollections.users
 const userFunctions = require('./users');
 const validation = require('../validation');
-const {ObjectId} = require('mongodb');
+const {ObjectId, UnorderedBulkOperation, ObjectID} = require('mongodb');
 const { folders } = require('.');
+const xss=require('xss')
 
 // Makes a new folder with name folderName for user with ID userID
 const createFolder = async (folderName, userID) => {
 
-    folderName = validation.checkFolderName(folderName);
+    folderName = xss(validation.checkFolderName(folderName));
     userID = validation.checkId(userID.toString());
 
     // Check if the folder already exists
@@ -64,35 +65,42 @@ const removeFolder = async (folderID) => {
 
 // Updates folder of folderID (belonging to user with ID userID) with name newName
 const renameFolder = async (folderID, newName) => {       
-    folderID = validation.checkId(folderID.toString());
+    folderID = xss(validation.checkId(folderID.toString()));
     let userID = await getUserIdByFolderId(folderID)
-    newName = validation.checkFolderName(newName);
-
+    //userID=userID.toString()
+    console.log(userID.toString())
+    newName = xss(validation.checkFolderName(newName));
+    let user=await userFunctions.getUserFromId(userID.toString())
     let userCollection = await users();
-    let updatedFolder = {
-        name:newName
-    }
-    let userFolders=await getUsersFolders(userID)
-    
+    let userFolders=await getUsersFolders(userID.toString())
+    let folder = await getFolderById(userID, folderID)
     let i=0
-    let found=false
     for(i in userFolders){
         if(userFolders[i]._id.toString()===folderID.toString()){
             found=true
             break
         }
     }
-    if(!found) throw `Cannot find card with that name`
-    userFolders[i].name=newName
+    let newFolder={
+        _id: folder._id,
+        name:newName,
+        decks:folder.decks
+    }
+    let userFolders2=userFolders
+    userFolders2[i]=newFolder
+    let updatedUser = {
+        password:user.password,
+        folders:userFolders2
+    }
 
     const updatedInfo = await userCollection.updateOne(
         {_id: ObjectId(userID)},
-        {$set: userFolders}
+        {$set: updatedUser}
     )
 
     if (updatedInfo.modifiedCount === 0) throw "Could not successfully rename folder";
 
-    return await getFolderById(folderID);
+    return await getFolderById(userID, folderID);
 }
 
 // Retrieves a folder object (given a folderID) that belongs to user with ID userID
@@ -124,6 +132,18 @@ const getFolderById = async (userID, folderID) => {
     if (!folder) throw new Error(`Could not find folder with ID of ${folderID}`);
 
     return folder;*/
+}
+
+const getFolderIdFromName = async(userId, folderName) => {
+    userId=validation.checkId(userId)
+    folderName=validation.checkFolderName(folderName)
+    userFolders=await getUsersFolders(userId)
+    for(f of userFolders){
+        if(f.name.toLowerCase()===folderName.toLowerCase()){
+            return f._id.toString()
+        }
+    }
+    throw "That user does not have that folder"
 }
 
 // Retrieves a userID given a folderID
@@ -160,7 +180,7 @@ const getUserIdByFolderId = async (folderID) => {
 // Retrieves an array of all the folders belonging to user with ID userID
 const getUsersFolders = async(userID) => {  
 
-    userID = validation.checkId(userID).toString();
+    userID = validation.checkId(userID.toString());
 
     const userCollection = await users();
     const tempUser = await userCollection.findOne({_id: ObjectId(userID)}); 
@@ -178,14 +198,38 @@ const addDecktoFolder = async (userID, folderID, deckID) => {
     deckID = validation.checkId(deckID.toString());
 
     const userCollection = await users();
-    const folder = await getFolderById(userID, folderID);
-    const deck = await folder.findOne({decks: {$elemMatch: {$eq: ObjectId(deckID)}}})
+    const user = await userCollection.findOne({_id:ObjectId(userID)})/*getFolderById(userID, folderID);*/
+    const folder = user.folders.filter((folder) => {
+        return folder._id.toString()===folderID.toString()
+    })[0]
+    if(folder.decks.includes(deckID.toString())) throw "Deck is already in folder";
+    let newDeck=folder.decks
+    newDeck.push(deckID)
+    let newFolders = user.folders
+    for(n in newFolders){
+        if(newFolders[n]._id.toString()===folderID.toString()){
+            newFolders[n] = {
+                _id:newFolders[n]._id,
+                name:newFolders[n].name,
+                decks:newDeck
+            }
+            break
+        }
+    }
 
-    if (deck) throw "Deck is already in folder";
+    let newUser = {
+        folders:newFolders
+    }
+
+    //const deck = await folder.findOne({_id:ObjectId(deckID)})/*folder.findOne({decks: {$elemMatch: {$eq: ObjectId(deckID)}}})*/
+
+    //if (deck) throw "Deck is already in folder";
 
     const updatedInfo = await userCollection.updateOne(
-        {_id: ObjectId(userID), "folders._id": ObjectId(folderId)},
-        {$push: {"folders.$.decks": deckID}}
+        {_id: ObjectId(userID)},
+        {$set: newUser}
+        /*{_id: ObjectId(userID), "folders._id": ObjectId(folderID)},
+        {$push: {"folders.$.decks": deckID}}*/
     )
 
     if (updatedInfo.modifiedCount === 0) throw "Could not successfully add deck to folder";
@@ -194,12 +238,53 @@ const addDecktoFolder = async (userID, folderID, deckID) => {
 
 }
 
+const removeDeckFromFolder = async(userID, folderID, deckID) => {
+    userID = validation.checkId(userID.toString());
+    folderID = validation.checkId(folderID.toString());
+    deckID = validation.checkId(deckID.toString());
+
+    const userCollection = await users();
+    const user = await userCollection.findOne({_id:ObjectId(userID)})/*getFolderById(userID, folderID);*/
+    const folder = user.folders.filter((folder) => {
+        return folder._id.toString()===folderID.toString()
+    })[0]
+    if(!folder.decks.includes(deckID.toString())) throw "Deck is not in folder";
+    let newDeck=folder.decks
+    
+    let newFolders = user.folders
+    for(n in newFolders){
+        if(newFolders[n]._id.toString()===folderID.toString()){
+            newFolders[n] = {
+                _id:newFolders[n]._id,
+                name:newFolders[n].name,
+                decks:newDeck.filter((deck) => {return deck.toString()!==deckID.toString()})
+            }
+            break
+        }
+    }
+    let newUser = {
+        folders:newFolders
+    }
+
+    const updatedInfo = await userCollection.updateOne(
+        {_id: ObjectId(userID)},
+        {$set: newUser}
+
+    )
+
+    if (updatedInfo.modifiedCount === 0) throw "Could not successfully remove deck from folder";
+
+    return deckID;
+}
+
 module.exports = {
     createFolder,
     removeFolder,
     renameFolder,
     getFolderById,
     getUserIdByFolderId,
+    getFolderIdFromName,
     getUsersFolders,
-    addDecktoFolder
+    addDecktoFolder,
+    removeDeckFromFolder
 }

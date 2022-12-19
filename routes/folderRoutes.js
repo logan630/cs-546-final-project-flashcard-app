@@ -65,7 +65,6 @@ router
             return
         }
         let newFolderId=newFolder._id
-        console.log(yourFolders)
         res.json({
             title:name,
             id:newFolderId,
@@ -86,6 +85,7 @@ router
         let id=undefined
         let userName=validation.checkUsername(req.session.user.username)
         let userId=undefined
+        //console.log(req.params.id)
         try{
             userId=await users.getUserIdFromName(userName)
             id=validation.checkId(req.params.id)
@@ -97,7 +97,6 @@ router
             return
         }
         let folderDecks=[]
-        //console.log(folder)
         try{
             for(deckId of folder.decks){
                 folderDecks.push(await decks.getDeckById(deckId))
@@ -116,7 +115,7 @@ router
         let id=validation.checkId(req.params.id)
         let newFolderName=req.body.name;
         try{
-            newFolderName=validation.checkFolderName(newFolderName)
+            newFolderName=xss(validation.checkFolderName(newFolderName))
             await folders.renameFolder(id.toString(),newFolderName)
         }
         catch(e){
@@ -124,7 +123,7 @@ router
             res.json({
                 title:"Error renaming folder",
                 id:undefined,
-                folderName:newFolderName,
+                folderName:xss(newFolderName),
                 success:false,
                 error:e.toString()
             })
@@ -134,12 +133,12 @@ router
         res.json({
             title:newFolderName,
             id:id,
-            folderName:newFolderName,
+            folderName:xss(newFolderName),
             success:true,
             error:undefined
         })
     })
-    .delete(async (req,res) => {
+    .delete(async (req,res) => {            //deleting a folder
         let id=validation.checkId(req.params.id)
         try{
             await folders.removeFolder(id)

@@ -43,7 +43,7 @@ const createDeck = async (creator,deckName,subject,isPublic,cardsArray,dateCreat
     const insertDeck=await deckCollection.insertOne(newDeck)        //insert that deck object
     if(!insertDeck.acknowledged || !insertDeck.insertedId) 
         throw "Could not add deck"
-    return insertDeck
+    return insertDeck.insertedId
 }
 
 const insertThisDeck = async (deck) => {
@@ -98,6 +98,12 @@ const getDeckById = async (deckId) => {         //finds a deck object given a de
         throw new Error(`Could not find deck with id of ${deckId}`)
     }
     return deck;
+}
+
+const getDeckIdByName = async(deckName) => {
+    deckName=validation.checkDeckName(deckName)
+    const deckCollection = await decks();
+    
 }
 
 const getDecksBySubject = async (deckSubject) => {

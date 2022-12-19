@@ -24,7 +24,9 @@ async function main() {
     let Moxxieid=await users.getUserIdFromName("Moxxie");
     let Retsukoid=await users.getUserIdFromName("Retsuko");
     let Chidiid=await users.getUserIdFromName("chidi");
-
+    let Deck1Id=undefined
+    let Deck2Id=undefined
+    let Deck3Id=undefined
     //decks
     try{await decks.createDeck("user1","My first deck","Nothing",true,[
         {front:"I am a new user",back:"How may I help you?"},
@@ -94,13 +96,13 @@ async function main() {
         {front:"Game with most hours",back:"Terraria"},
         {front:"My smash bros main",back:"ROB"}
     ])}catch(e){console.log(e)}
-    try{await decks.createDeck("Daniel","Songs 1","Songs I like",true,[
+    try{Deck1Id = (await decks.createDeck("Daniel","Songs 1","Songs I like",true,[
         {front:"New Politics",back:"CIA, One of Us"},
         {front:"Falling in Reverse",back:"Popular Monster, Voices in my head, Zombified"},
         {front:"All Time Low",back:"A Love Like War"},
         {front:"Fall Out Boy",back:"Centuries, Thnks fr th Mmrs, Light Em Up"},
         {front:"The Offspring",back:"Let The Bad Times Roll, The Kids Aren't Alright, Self Esteem"}
-    ])}catch(e){console.log(e)}
+    ])).insertedId.toString()}catch(e){console.log(e)}
     try{await decks.createDeck("Daniel","Songs 2","Songs I like",true,[
         {front:"Panic! At the Disco",back:"High Hopes, Saturday Night"},
         {front:"Fister the People",back:"Sit Next to me"},
@@ -108,7 +110,7 @@ async function main() {
         {front:"AJR",back:"100 Bad Days, Birthday Party"},
         {front:"Glass Animals",back:"Heat Waves"}
     ])}catch(e){console.log(e)}
-    try{await decks.createDeck("Daniel","Stevens Classes","Academics",false,[
+    try{Deck2Id = (await decks.createDeck("Daniel","Stevens Classes","Academics",false,[
         {front:"CS 115",back:"Intro to Computer Science"},
         {front:"CS 284",back:"Data Structures"},
         {front:"CS 385",back:"Algorithms"},
@@ -117,7 +119,7 @@ async function main() {
         {front:"CS 516",back:"Compiler Design and Implementation"},
         {front:"CS 492",back:"Operating Systems"},
         {front:"CS 677",back:"Parallel Programming for many-core processors"}
-    ])}catch(e){console.log(e)}
+    ])).insertedId.toString()}catch(e){console.log(e)}
     try{await decks.createDeck("Daniel","Long deck 1","pants",false,[
         {front:"01",back:"AB"},
         {front:"CD",back:"EF"},
@@ -153,12 +155,12 @@ async function main() {
         {front:"Name the 4 engine strokes",back:"Intake, compression, power, exhaust"},
         {front:"What is the redline on the Honda S2000?",back:"9000 RPM for the first generation, and 8300 RPM for the second"}
     ])}catch(e){console.log(e)}
-    try{await decks.createDeck("Daniel","Places I've been","About me",false,[
+    try{Deck3Id = (await decks.createDeck("Daniel","Places I've been","About me",false,[
         {front:"United States",back:"NJ, NY, FL, UT, CA, PA, MD"},
         {front:"Europe",back:"Italy, France, Spain"},
         {front:"Caribbean",back:"Jamaica, Puerto Rico, St. Thomas, St. Maarten, St. Lucia, Barbados, Bermuda"},
         {front:"Mexico",back:"Cozumel, Xcaret"}
-    ])}catch(e){console.log(e)}
+    ])).insertedId.toString()}catch(e){console.log(e)}
     try{await decks.createDeck("Moxxie","Helluva Nonsense","Random Trivia",false,[
         {front:"Moxxie's wife",back:"Millie"},
         {front:"Who does Stolas hate the most?",back:"Stella"},
@@ -198,8 +200,12 @@ async function main() {
     ])}catch(e){console.log(e)}
     try{await decks.createDeck("Chidi","Empty Deck","Nothing",true,[])}catch(e){console.log(e)}
     //folders
-    try{await folders.createFolder("My stuff",Danielid) }catch(e){console.log(e)}
+    let folder1Id=undefined
+    try{folder1Id = (await folders.createFolder("My stuff",Danielid))._id }catch(e){console.log(e)}
     try{await folders.createFolder("My stuff2",Danielid) }catch(e){console.log(e)}
+    try{await folders.addDecktoFolder(Danielid,folder1Id,Deck1Id)}catch(e){console.log(e)}
+    try{await folders.addDecktoFolder(Danielid,folder1Id,Deck2Id)}catch(e){console.log(e)}
+    try{await folders.addDecktoFolder(Danielid,folder1Id,Deck3Id)}catch(e){console.log(e)}
 
     console.log("Done seeding database")
     await dbConnection.closeConnection();
