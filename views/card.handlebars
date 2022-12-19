@@ -8,12 +8,12 @@
         <input id="newCardFrontInput" type="text" name="newCardFrontInput"> <br>
         <label for="newCardBackInput">Back</label>
         <textarea id="newCardBackInput" name="newCardBackInput" rows="4" cols="30"></textarea> <br>
-        <button type="submit">Edit this card</button>
+        <button type="submit" class="submit-button">Edit this card</button>
     </form>
     <nav>
         <a href="/protected/decks/{{id}}">Back to {{deckName}}</a>
         <div class="align-right">
-            <button type="submit" class="delete-card" id="delete-card">Delete this card</button>
+            <button type="submit" class="delete-card submit-button large-button" id="delete-card">Delete this card</button>
         </div>
     </nav>
 </main>

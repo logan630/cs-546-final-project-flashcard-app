@@ -2,40 +2,34 @@
     <h1 id="deckName" class="deckName">{{deckName}}: Flashcards</h1>
 
     <div>
-        {{#unless isFirstCard}}
-            <a href="/protected/decks/{{id}}/flashcards/{{previousCardNumber}}/front" class="flashcard-arrow-button-left">〈 </a>
-        {{/unless}}
-
         <span class="flashcard-box"> {{backText}} </span>
-
-        {{#unless isLastCard}}
-            <a href="/protected/decks/{{id}}/flashcards/{{nextCardNumber}}/front" class="flashcard-arrow-button-right"> 〉</a>
-        {{/unless}}
     </div>
 
     <br>
     <div>
-        <a href="/protected/decks/{{id}}/flashcards/{{cardNumber}}/front">Flip to front</a>
+        <a href="/protected/decks/{{deckID}}/flashcards/{{cardNumber}}/front">Flip to front</a>
     </div>
 
     <br><br>
-    <form action="/protected/decks/{{id}}/flashcards/{{cardNumber}}/front" id="flashcard-correct-form" class="flashcard-corret-form">
+    <form method="POST" action="/protected/decks/{{deckID}}/flashcards/{{nextCardNumber}}/back" id="flashcard-correct-form" class="flashcard-correct-form">
         <p>Did you get it correct?</p>
-
-        <input type="radio" id="correct" name="correct?">
+        <input type="radio" id="correct" name="isCorrect" value="Yes">
         <label for="yes">Yes</label>
-
-        <input type="radio" id="incorrect" name="correct?">
+        <input type="radio" id="incorrect" name="isCorrect" value="No">
         <label for="no">No</label><br>
-    </form>
 
-    <br><br>
-    <form action="/protected/decks/{{id}}/flashcards/{{cardNumber}}/front" id="flashcard-done-form" class="flashcard-done-form">
-        <label for="markAsDone">Mark as done</label>
-        <input id="markAsDone" type="checkbox" name="markAsDone">
+        <br><br>
+        <label for="markedAsDone">Mark as done</label>
+        <input id="markedAsDone" type="checkbox" name="markedAsDone">
+
+        {{#if isLastCard}}
+            {{!-- <button type="submit" id="flashcard-finish-button"> Finish --}}
+        {{else}}
+            <button type="submit" id="flashcard-right-arrow-button"> 〉
+        {{/if}}</button>
     </form>
 
     <footer><nav>
-        <a href="/protected/decks/{{id}}">Back to this deck</a>
+        <a href="/protected/decks/{{deckID}}">Back to this deck</a>
     </nav></footer>
 </main>
