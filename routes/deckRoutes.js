@@ -67,7 +67,7 @@ router
             let newDeck=undefined;
             let error=undefined;
             try {                                       //req.body.name is the name of the deck
-                newDeck = await decks.createDeck(u, deckInfo.name, deckInfo.subject, false)
+                newDeck = await decks.createDeck(u,name,subject, false)
             }
             catch(e){           //if creating a deck fails, send handlebars page with thrown error
                 console.log(e)
@@ -86,7 +86,7 @@ router
             if(req.session.user){       //if it passes, create a deck with undefined error and a new deck id
                 res.json({
                     //handlebars:path.resolve('views/decks.handlebars'),
-                    subject: deckInfo.subject,
+                    subject: xss(deckInfo.subject),
                     title:u,
                     deck:yourDecks,
                     id:newDeckId,
