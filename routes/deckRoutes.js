@@ -59,34 +59,156 @@ router
             res.sendStatus(500)
             return
         }
-        let newDeck=undefined;
-        try {                                     
-            newDeck = await decks.createDeck(u, name, subject, false)
+        let deckInfo = req.body;
+        if(deckInfo.trySort || deckInfo.tryFilter) {
+            return res.json({success: true});
+        } else {
+            let newDeck=undefined;
+            let error=undefined;
+            try {                                       //req.body.name is the name of the deck
+                newDeck = await decks.createDeck(u, deckInfo.name, deckInfo.subject, false)
+            }
+            catch(e){           //if creating a deck fails, send handlebars page with thrown error
+                console.log(e)
+                error=e;
+                res.json({
+                    //handlebars:path.resolve('views/decks.handlebars'),
+                    title:u,
+                    deck:yourDecks,
+                    success:false,
+                    error:e.toString()
+                })
+                res.status(400)
+                return
+            }
+            let newDeckId=newDeck.insertedId.toString()
+            if(req.session.user){       //if it passes, create a deck with undefined error and a new deck id
+                res.json({
+                    //handlebars:path.resolve('views/decks.handlebars'),
+                    subject: deckInfo.subject,
+                    title:u,
+                    deck:yourDecks,
+                    id:newDeckId,
+                    success:true,
+                    error:error
+                })
+                //res.render(path.resolve('views/decks.handlebars'),{title:u,deck:yourDecks,userName:u,id:newDeckId})
+            }
         }
-        catch(e){           //if creating a deck fails, send handlebars page with thrown error
-            console.log(e)
-            error=e;
-            res.json({
-                //handlebars:path.resolve('views/decks.handlebars'),
-                title:u,
-                deck:yourDecks,
-                success:false,
-                error:e.toString()
-            })
-            res.status(400)
+    })
+
+// work-around for sorting decks list
+// renders the page on a different route depending on the sorting order
+// re-uses the code from /decks, since they otherwise render the same page
+router      
+    .route('/sorted_decks/alphabetically')
+    .get(async (req, res) => { 
+        let userInfo=req.body;
+        if(!userInfo){                  
+            res.sendStatus(400)
             return
         }
-        let newDeckId=newDeck.insertedId.toString()
-        if(req.session.user){       //if it passes, create a deck with undefined error and a new deck id
-            res.json({
-                //handlebars:path.resolve('views/decks.handlebars'),
-                subject: req.body.subject,
+        let u=req.session.user.username
+        let userId=undefined
+        let yourDecks=undefined
+        try {           
+            userId=await users.getUserIdFromName(u) //gets user id from that user's username
+            yourDecks=await decks.getUsersDecks(userId) //gets that user's decks
+        }
+        catch(e){                       //if cannot get users decks
+            console.log(e)
+            if(!yourDecks){
+                res.sendStatus(500)
+            }
+            return
+        }     
+        if(req.session.user){           //render decks if logged in
+            yourDecks = yourDecks.sort((a,b) => 
+                a.name.toUpperCase().localeCompare(
+                    b.name.toUpperCase()
+                )
+            );
+            res.render(path.resolve('views/decks.handlebars'),{
+                title: u,
+                deck: yourDecks,
+                userName: u,
+                ordered: true, // boolean to tell handlebars to augment the <h2> tag
+                order: '(Alphabetical Order)' // order annotation
+            })
+        }
+    })
+
+// continuation of the sorting work-around
+router      
+    .route('/sorted_decks/chronilogically')
+    .get(async (req, res) => { 
+        let userInfo=req.body;
+        if(!userInfo){                  
+            res.sendStatus(400)
+            return
+        }
+        let u=req.session.user.username
+        let userId=undefined
+        let yourDecks=undefined
+        try {           
+            userId=await users.getUserIdFromName(u) //gets user id from that user's username
+            yourDecks=await decks.getUsersDecks(userId) //gets that user's decks
+        }
+        catch(e){                       //if cannot get users decks
+            console.log(e)
+            if(!yourDecks){
+                res.sendStatus(500)
+            }
+            return
+        }     
+        if(req.session.user){           //render decks if logged in
+            yourDecks = yourDecks.sort((a,b) => {
+                let aDateObject = new Date(a.dateCreated);
+                let bDateObject = new Date(b.dateCreated);
+
+                return aDateObject - bDateObject;
+            });
+            res.render(path.resolve('views/decks.handlebars'),{
                 title:u,
                 deck:yourDecks,
-                id:newDeckId,
-                success:true
+                userName:u,
+                ordered: true, // boolean to tell handlebars to augment the <h2> tag
+                order: '(By Date)' // order annotation
             })
-            //res.render(path.resolve('views/decks.handlebars'),{title:u,deck:yourDecks,userName:u,id:newDeckId})
+        }
+    })
+
+router
+    .route('/filtered_decks/:subject') // filters the list of decks by subject
+    .get(async (req, res) => {
+        let userInfo = req.body;
+        if(!userInfo) {
+            return res.status(400);
+        }
+
+        let u = req.session.user.username;
+
+        let deck, subject;
+
+        try {
+            subject = validation.checkSubject(req.params.subject);
+            deck = await decks.getDecksBySubject(subject);
+        } catch(e) {
+            console.log('\n\ncould not retrieve decks by subject\n\n');
+            console.log(e);
+
+            return res.redirect('/protected/decks');
+        }
+
+        if(req.session.user) {
+            res.render(path.resolve('views/decks.handlebars'), {
+                title: u,
+                deck: deck,
+                userName: u,
+                ordered: false,
+                filtered: true,
+                subject: `(Subject: ${subject})`
+            })
         }
     })
 

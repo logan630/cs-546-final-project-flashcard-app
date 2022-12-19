@@ -99,6 +99,26 @@ const getFolderById = async (userID, folderID) => {
     return folder;
 }
 
+// Retrieves a userID given a folderID
+const getUserIdByFolderId = async (folderID) => {   
+
+    folderID = validation.checkId(folderID.toString());
+
+    const userCollection = await users();
+
+    const userFound = await userCollection.find(
+        {"_id": {
+            "$in": userCollection.distinct("folders._id", {"_id": ObjectId(folderID)})
+        }}
+    )
+
+    if (!userFound) throw new Error(`Could not find user with folder of ID ${folderID}`);
+
+    userID = userFound._id;
+
+    return userID;
+}
+
 // Retrieves an array of all the folders belonging to user with ID userID
 const getUsersFolders = async(userID) => {  
 
@@ -141,6 +161,7 @@ module.exports = {
     removeFolder,
     renameFolder,
     getFolderById,
+    getUserIdByFolderId,
     getUsersFolders,
     addDecktoFolder
 }

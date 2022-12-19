@@ -30,14 +30,14 @@
             </span>
 
             <form action="/protected/decks/{{id}}/matchingGame" method="POST" name="match-form">
-                <label for="guessMatches">
+                <label for="guessMatches" class="label-text">
                     Match each card's front side on the left with its corresponding back side on the right, using the numbering provided above
                     (like drawing lines from the left side to the right side).
                     Submit your answer in the form of a list of comma-separated numbers for the backs from top to bottom,
                     like "3, 2, 5, 1, 4" or "2,4,3,1,". You should not have duplicates in your answer.
                 </label><br>
                 <input id="guessMatches" type="text" name="guessMatches" placeholder="1, 2, 3, 4"><br>
-                <button type="submit">Submit your answer</button>
+                <button type="submit" class="submit-button large-button">Submit your answer</button>
             </form>
         {{else}} {{#if success}}
             <span class="success">

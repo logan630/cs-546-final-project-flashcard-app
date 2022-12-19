@@ -9,7 +9,7 @@
         <input id="cardFrontInput" type="text" name="cardFrontInput"><br>
         <label for="cardBackInput">Back</label>
         <textarea id="cardBackInput" name="cardBackInput" rows="4" cols="30"></textarea> <br>
-        <button type="submit">Add card</button>
+        <button type="submit" class="submit-button">Add card</button>
     </form> <br>
     <ol id="card-list" class="card-list">
         <!--Same schema as submitted by the AJAX request. Not strictly necessary but looks consistent-->
@@ -25,21 +25,21 @@
         <input id="newDeckSubject" type="text" name="newDeckSubject"> <br>
         <label for="isDeckPublic">Is this deck public?</label>
         {{#if public}}          <!-- if the deck is already public -->
-            <input id="isDeckPublic" type="checkbox" name="isDeckPublic" checked>
+            <input id="isDeckPublic" type="checkbox" name="isDeckPublic" class="checkbox" checked>
         {{else}}
-            <input id="isDeckPublic" type="checkbox" name="isDeckPublic">
+            <input id="isDeckPublic" type="checkbox" name="isDeckPublic" class="checkbox">
         {{/if}}
-        <button type="submit">Update deck</button>
+        <button type="submit" class="submit-button">Update deck</button>
     </form>
     <br>
     <form action="/protected/decks/{{id}}/send" method="POST">
         <label for="sendToAnotherUser">Send this deck to another user (by their name)</label>
         <input id="sendToAnotherUser" type="text" name="sendToAnotherUser">
-        <button type="submit">Send</button>
+        <button type="submit" class="submit-button">Send</button>
     </form>
     <nav>
         <div class="align-right">
-            <button type="submit" class="delete-deck" id="delete-deck">Delete this deck</button>
+            <button type="submit" class="delete-deck submit-button large-button" id="delete-deck">Delete this deck</button>
         </div>
         
         <a href="/protected/decks">Back to your decks</a>
