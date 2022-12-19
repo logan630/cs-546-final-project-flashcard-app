@@ -1,4 +1,4 @@
-//This file is for handling routes with decks, cards, and possibly folders
+//This file is for handling routes with decks, cards
 const express=require('express')
 const { ObjectId } = require('mongodb')
 const router=express.Router()
@@ -8,6 +8,7 @@ const decks=require('../data/decks')
 const validation=require('../validation')
 const xss=require('xss')
 const { url } = require('inspector')
+const { folders } = require('../data')
 
 router      
     .route('/decks')
@@ -801,5 +802,59 @@ router
                           )
             }
         })
+
+router
+    .route('/decks/:id/addToFolder')
+    .post(async (req,res) => {
+        let deckId=undefined
+        let theUser=req.session.user.username
+        try{
+            deckId=validation.checkId(req.params.id)
+            theUser=validation.checkUsername(theUser)
+            //folderId=validation.checkId(folderId)
+        }
+        catch(e){console.log(e)}
+        let folderId=undefined
+        let userId=undefined
+        try{
+            userId=await users.getUserIdFromName(theUser)
+            folderId=await folders.getFolderIdFromName(userId,req.body.sendToFolder)
+        }
+        catch(e){console.log(e)}
+        try{
+            await folders.addDecktoFolder(userId,folderId,deckId)
+        }
+        catch(e){
+            console.log(e)
+        }
+        res.redirect(`/protected/folders/${folderId}`)
+    })
+
+router
+    .route('/decks/:id/removeFromFolder')
+    .post(async (req,res) => {
+        let deckId=undefined
+        let theUser=req.session.user.username
+        try{
+            deckId=validation.checkId(req.params.id)
+            theUser=validation.checkUsername(theUser)
+            //folderId=validation.checkId(folderId)
+        }
+        catch(e){console.log(e)}
+        let folderId=undefined
+        let userId=undefined
+        try{
+            userId=await users.getUserIdFromName(theUser)
+            folderId=await folders.getFolderIdFromName(userId,req.body.removeFromFolder)
+        }
+        catch(e){console.log(e)}
+        try{
+            await folders.removeDeckFromFolder(userId,folderId,deckId)
+        }
+        catch(e){
+            console.log(e)
+        }
+        res.redirect(`/protected/folders/${folderId}`)
+    })
 
 module.exports = router;

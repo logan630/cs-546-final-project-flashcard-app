@@ -37,6 +37,16 @@
         <input id="sendToAnotherUser" type="text" name="sendToAnotherUser">
         <button type="submit">Send</button>
     </form>
+    <form action="/protected/decks/{{id}}/addToFolder" method="POST">
+        <label for="sendToFolder">Add this deck to a folder</label>
+        <input id="sendToFolder" type="text" name="sendToFolder">
+        <button type="submit">Add to folder</button>
+    </form>
+    <form action="/protected/decks/{{id}}/removeFromFolder" method="POST">
+        <label for="removeFromFolder">Remove this deck from a folder</label>
+        <input id="removeFromFolder" type="text" name="removeFromFolder">
+        <button type="submit">Remove from folder</button>
+    </form>
     <nav>
         <div class="align-right">
             <button type="submit" class="delete-deck" id="delete-deck">Delete this deck</button>

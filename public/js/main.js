@@ -244,7 +244,9 @@
         let deckNewName=newDeckNameInput.val()          //gets data from the form where the user submits the new deck name
         let deckNewSubject=newDeckSubjectInput.val()
         let deckNewPublicity=newDeckPublicity.is(":checked")
-        
+        if(!deckNewName || !newDeckSubject){
+            alert("You must supply a new deck name and subject")
+        }
         if(deckNewName && deckNewSubject){            //if new deck name was accepted
             let url=window.location.href.substring(window.location.href.indexOf("/protected"));     //gets deck url
             let requestConfig={

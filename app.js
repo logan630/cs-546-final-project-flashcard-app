@@ -21,7 +21,7 @@ app.use(            //authentication middleware
         secret: "Oh the middleware, everybody wants to be my checkId",
         resave: false,
         saveUninitialized: true,
-        cookie: {maxAge: 600000}
+        cookie: {maxAge: 800000}
     })
 )
 

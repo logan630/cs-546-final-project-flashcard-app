@@ -138,7 +138,7 @@ router
             error:undefined
         })
     })
-    .delete(async (req,res) => {
+    .delete(async (req,res) => {            //deleting a folder
         let id=validation.checkId(req.params.id)
         try{
             await folders.removeFolder(id)
