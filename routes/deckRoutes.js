@@ -769,7 +769,7 @@ router
             //     }
             // }
 
-            console.log(thisUser.cards_whitelist[0])
+            //  console.log(thisUser.cards_whitelist[0])
 
             res.render(path.resolve('views/flashcard_front.handlebars'),
                        {deckID            : deckID,
